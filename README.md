@@ -11,6 +11,7 @@ Command arguments
   auth (pincode or password to match built in value)
   device (name of remote control)
   parameter (name of button on remote control)
+    If %is 1st char then the following hex code is used rather than looking up in device config
   repeat (number of times to send ir code)
   wait (mSec delay after sending code)
   

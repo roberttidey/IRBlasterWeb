@@ -8,6 +8,7 @@
 #include <c_types.h>
 
 #define TICK_PERIOD 3.2
+#define HEX_ESCAPE '%'
 
 struct deviceData {
 	char* deviceName;
@@ -29,7 +30,6 @@ extern int bitMessages_getButton(int device, char* buttonString);
 extern int bitMessages_getDeviceRepeat(char* deviceString, int repeat);
 extern int bitMessages_addDelay(uint16* msg, int delay);
 extern int bitMessages_makeMsg(uint16* msg, char* header, char* trailer, char* dataString, int bitCount, char* pulses0, char* pulses1, int repeatDelay);
-extern int bitMessages_makeIndexedMsg(uint16* msg, int device, int button, int repeat);
 extern int bitMessages_makeNamedMsg(uint16* msg, char* deviceString, char* buttonString, int repeat);
 
 //DeviceData access routines

@@ -138,26 +138,24 @@ int bitMessages_makeMsg(uint16* msg, char* header, char* trailer, char* dataStri
 	return count;
 }
 
-// Make message from device and button numbers
-int bitMessages_makeIndexedMsg(uint16* msg, int device, int button, int repeat) {
-	int delay = 0;
-	if(repeat > 1 || devices[device].minRepeat > 1)
-		delay = devices[device].repeatDelay;
-	return bitMessages_makeMsg(msg, devices[device].header, devices[device].trailer, devices[device].buttons[button],
-								devices[device].bitCount, devices[device].pulses0, devices[device].pulses1, delay);
-}
 
 // Make message from device name and button name
 int bitMessages_makeNamedMsg(uint16* msg, char* deviceString, char* buttonString, int repeat) {
-	int deviceIndex, buttonIndex, locRepeat;
-	deviceIndex = bitMessages_getDevice(deviceString);
-	if(deviceIndex >=0) {
-		buttonIndex = bitMessages_getButton(deviceIndex, buttonString);
-		if(buttonIndex >=0) {
-			return bitMessages_makeIndexedMsg(msg, deviceIndex, buttonIndex, repeat);
+	int deviceIx, buttonIx, delay = 0;
+	char* button;
+	deviceIx = bitMessages_getDevice(deviceString);
+	if(deviceIx >=0) {
+		if(buttonString[0] == HEX_ESCAPE) {
+			button = buttonString+1;
 		} else {
-			return 0;
+			buttonIx = bitMessages_getButton(deviceIx, buttonString);
+			if (buttonIx <= 0) return 0;
+			button = devices[deviceIx].buttons[buttonIx];
 		}
+		if(repeat > 1 || devices[deviceIx].minRepeat > 1)
+			delay = devices[deviceIx].repeatDelay;
+		return bitMessages_makeMsg(msg, devices[deviceIx].header, devices[deviceIx].trailer, button,
+								devices[deviceIx].bitCount, devices[deviceIx].pulses0, devices[deviceIx].pulses1, delay);
 	} else {
 		return 0;
 	}
