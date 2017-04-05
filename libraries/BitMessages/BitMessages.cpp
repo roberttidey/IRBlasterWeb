@@ -12,7 +12,7 @@
 
 #include "BitDevices.h"
 
-int bitMessages_addPulses(uint16* msg, char* pulseString) {
+int bitMessages_addPulses(uint16* msg, char* pulseString, int factor) {
 	int count=0;
 	char* iStr = pulseString;
 	int iLen = strlen(pulseString);
@@ -23,7 +23,7 @@ int bitMessages_addPulses(uint16* msg, char* pulseString) {
 	p = strtok(pulseString, ",");
 	while(p != NULL) {
 		if(p[0] == 'H' || p[0] == 'L') {
-			msg[count] = round((float)strtoul(p+1, NULL,10) / TICK_PERIOD) + (p[0] == 'H'? 0x8000:0);
+			msg[count] = round((float)strtoul(p+1, NULL,10) / TICK_PERIOD) * factor + (p[0] == 'H'? 0x8000:0);
 			count++;
 		}
 		p = strtok(NULL, ",");
@@ -34,8 +34,8 @@ int bitMessages_addPulses(uint16* msg, char* pulseString) {
 	return count;
 }
 
-int bitMessages_addDataPulses(uint16* msg, char* dataString, int bitCount, char* pulses0, char* pulses1) {
-	int count=0,i,j,b;
+int bitMessages_addDataPulses(uint16* msg, char* dataString, int bitCount, char* pulses0, char* pulses1, int special) {
+	int count=0,i,j,b, factor;
 	char c;
 	if(dataString == NULL) {
 		return 0;
@@ -53,10 +53,16 @@ int bitMessages_addDataPulses(uint16* msg, char* dataString, int bitCount, char*
 			c = (c > '9')? (c &~ 0x20) - 'A' + 10: (c - '0');
 			b = 0x08;
 		}
+		// select any special timing factor
+		switch(special) {
+			case SPECIAL_NORMAL: factor = 1; break;
+			case SPECIAL_RC6: factor = (j!=3) ? 1 : 2; break;
+			default : factor = 1;
+		}
 		if(c&b)
-			count += bitMessages_addPulses(msg+count, pulses1);
+			count += bitMessages_addPulses(msg+count, pulses1, factor);
 		else
-			count += bitMessages_addPulses(msg+count, pulses0);
+			count += bitMessages_addPulses(msg+count, pulses0, factor);
 		b>>=1;
 	}
 	return count;
@@ -125,14 +131,14 @@ int bitMessages_addDelay(uint16* msg, int delay) {
 }
 
 //Make message from header, data and trailer strings
-int bitMessages_makeMsg(uint16* msg, char* header, char* trailer, char* dataString, int bitCount, char* pulses0, char* pulses1, int delay) {
+int bitMessages_makeMsg(uint16* msg, char* header, char* trailer, char* dataString, int bitCount, char* pulses0, char* pulses1, int special, int delay) {
 	int count = 0;
 	if(header != NULL) 
-		count += bitMessages_addPulses(msg, header);
+		count += bitMessages_addPulses(msg, header, 1);
 	if(dataString != NULL) 
-		count += bitMessages_addDataPulses((msg+count), dataString, bitCount, pulses0, pulses1);
+		count += bitMessages_addDataPulses((msg+count), dataString, bitCount, pulses0, pulses1, special);
 	if(trailer != NULL) 
-		count += bitMessages_addPulses((msg+count), trailer);
+		count += bitMessages_addPulses((msg+count), trailer, 1);
 	if(delay > 0)
 		count += bitMessages_addDelay((msg+count), delay);
 	return count;
@@ -179,7 +185,7 @@ int bitMessages_makeNamedMsg(uint16* msg, char* deviceString, char* buttonString
 		if(repeat > 1 || devices[deviceIx].minRepeat > 1)
 			delay = devices[deviceIx].repeatDelay;
 		return bitMessages_makeMsg(msg, devices[deviceIx].header, devices[deviceIx].trailer, button,
-								bCount, devices[deviceIx].pulses0, devices[deviceIx].pulses1, delay);
+								bCount, devices[deviceIx].pulses0, devices[deviceIx].pulses1, devices[deviceIx].special, delay);
 	} else {
 		return 0;
 	}

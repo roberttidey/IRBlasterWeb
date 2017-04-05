@@ -4,7 +4,10 @@
 // Define the buttons / codes as pairs of strings (name:hex code)
 // The data structure then defines basic pulse coding, bit length etc
 
-#define NUMBER_DEVICES 3
+#define NUMBER_DEVICES 10
+
+//lgtv, yamaha, youview fully defined
+//nec,panasonic,jvc,samsung,sony,rc51,rc61 untested placeholders and need button codes
 
 char* lgtvMsgs[] = {
 	"LGTV-ON","20DF10EF",
@@ -185,6 +188,33 @@ char* youviewMsgs[] = {
 	NULL
 };
 
+char* necMsgs[] = {
+	NULL
+};
+
+char* panasonicMsgs[] = {
+	NULL
+};
+
+char* jvcMsgs[] = {
+	NULL
+};
+
+char* samsungMsgs[] = {
+	NULL
+};
+
+char* sonyMsgs[] = {
+	NULL
+};
+
+char* rc51Msgs[] = {
+	NULL
+};
+
+char* rc61Msgs[] = {
+	NULL
+};
 
 deviceData devices[NUMBER_DEVICES] = {
 	"lgtv",
@@ -192,26 +222,110 @@ deviceData devices[NUMBER_DEVICES] = {
 	NULL, //trailer
 	"H550,L550",
 	"H550,L1600",
+	0, //Special handling
 	100, //repeat gap mSec
 	33, //bit count
 	1, // minimum repeat
 	lgtvMsgs,
+	
 	"yamaha",
 	"H9000,L4500", //header
 	NULL, //trailer
 	"H550,L550",
 	"H550,L1600",
+	0, //Special handling
 	100, //repeat gap mSec
 	33, //bit count
 	1, // minimum repeat
 	yamahaMsgs,
+	
 	"youview",
 	"H9000,L4500", //header
 	NULL, //trailer
 	"H550,L550",
 	"H550,L1600",
+	0, //Special handling
 	100, //repeat gap mSec
 	33, //bit count
 	1, // minimum repeat
-	youviewMsgs
+	youviewMsgs,
+	
+	"nec",
+	"H9000,L4500", //header
+	NULL, //trailer
+	"H550,L550",
+	"H550,L1600",
+	0, //Special handling
+	100, //repeat gap mSec
+	33, //bit count
+	1, // minimum repeat
+	necMsgs,
+	
+	"panasonic",
+	"H3500,L1750", //header
+	NULL, //trailer
+	"H500,L400",
+	"H500,L1250",
+	0, //Special handling
+	100, //repeat gap mSec
+	33, //bit count
+	1, // minimum repeat
+	panasonicMsgs,
+	
+	"jvc",
+	"H8000,L4000", //header
+	NULL, //trailer
+	"H600,L550",
+	"H600,L1600",
+	0, //Special handling
+	75, //repeat gap mSec
+	33, //bit count
+	1, // minimum repeat
+	jvcMsgs,
+	
+	"samsung",
+	"H4500,L4500", //header
+	NULL, //trailer
+	"H600,L600",
+	"H600,L1700",
+	0, //Special handling
+	100, //repeat gap mSec
+	33, //bit count
+	1, // minimum repeat
+	samsungMsgs,
+	
+	"sony",
+	"H2400,L600", //header
+	NULL, //trailer
+	"H650,L600",
+	"H1250,L600",
+	0, //Special handling
+	100, //repeat gap mSec
+	33, //bit count
+	2, // minimum repeat
+	sonyMsgs,
+	
+	"rc51",
+	"H890,L890,H890", //header
+	"L890", //trailer
+	"L890,H890",
+	"H890,L890",
+	0, //Special handling
+	45, //repeat gap mSec
+	33, //bit count
+	1, // minimum repeat
+	rc51Msgs,
+
+	"rc61",
+	"H2700,L890,H450,L450", //header
+	"L450", //trailer
+	"L450,H450",
+	"H450,L450",
+	1, //Special handling
+	45, //repeat gap mSec
+	33, //bit count
+	1, // minimum repeat
+	rc61Msgs
+
 };
+

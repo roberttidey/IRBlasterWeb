@@ -11,12 +11,17 @@
 #define HEX_ESCAPE '%'
 #define COUNT_ESCAPE '#'
 
+//definitions for special handling when adding data pulses
+#define SPECIAL_NORMAL 0
+#define SPECIAL_RC6 1
+
 struct deviceData {
 	char* deviceName;
 	char* header;
 	char* trailer;
 	char* pulses0;
 	char* pulses1;
+	int special;
 	int repeatDelay; //mSec
 	int bitCount;
 	int minRepeat; //repeat 1 is send once
@@ -24,13 +29,13 @@ struct deviceData {
 };
 
 // make message pulse buffer routines
-extern int bitMessages_addPulses(uint16* msg, char* pulseString);
-extern int bitMessages_addDataPulses(uint16* msg, char* dataString, int bitCount, char* pulses0, char* pulses1);
+extern int bitMessages_addPulses(uint16* msg, char* pulseString, int factor);
+extern int bitMessages_addDataPulses(uint16* msg, char* dataString, int bitCount, char* pulses0, char* pulses1, int special);
 extern int bitMessages_getDevice(char* deviceString);
 extern int bitMessages_getButton(int device, char* buttonString);
 extern int bitMessages_getDeviceRepeat(char* deviceString, int repeat);
 extern int bitMessages_addDelay(uint16* msg, int delay);
-extern int bitMessages_makeMsg(uint16* msg, char* header, char* trailer, char* dataString, int bitCount, char* pulses0, char* pulses1, int repeatDelay);
+extern int bitMessages_makeMsg(uint16* msg, char* header, char* trailer, char* dataString, int bitCount, char* pulses0, char* pulses1, int special, int repeatDelay);
 extern int bitMessages_makeNamedMsg(uint16* msg, char* deviceString, char* buttonString, int repeat, int bits);
 
 //DeviceData access routines

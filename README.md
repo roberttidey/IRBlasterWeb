@@ -46,6 +46,7 @@ Remote controls
 	    NULL, //trailer pulses
 	    "H550,L550", // pulses for a data bit 0
 	    "H550,L1600", // pulses for a data bit 1
+		0, //special handling 0=Normal, 1 = rc6 bit 3 handling
 	    100, //repeat gap mSec
 	    33, //bit count
 	    1, // minimum repeat
