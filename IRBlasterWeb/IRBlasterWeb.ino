@@ -28,9 +28,10 @@
 #define AP_SUBNET 255,255,255,0
 
 #define AP_AUTHID "1234"
-#define IR_PIN 14
-#define IR_FREQUENCY 38000
+
 #define IR_TIMER 0
+int irPin = 14; // 2 or 14
+int irFrequency = 38000;
 
 //For update service
 String host = "esp8266-irblaster";
@@ -99,7 +100,7 @@ void setup() {
 	server.on("/", indexHTML);
 	server.begin();
 	Serial.println("Set up IR sender");
-	bitTx_init(IR_PIN, IR_FREQUENCY, IR_TIMER);
+	bitTx_init(irPin, irFrequency, IR_TIMER);
 	
 	Serial.println("Set up complete");
 }
@@ -191,26 +192,36 @@ void processIRjson() {
  Process single IR command
 */
 int processIRCommand() {
-	int pulseCount = 0;
+	int pulseCount = 0, deviceIx;
 	int ret = 0;
 	
 	if(cmdRepeat == 0) cmdRepeat = 1;
-	cmdRepeat = bitMessages_getDeviceRepeat(cmdDevice, cmdRepeat);
 	if(strcmpi(cmdDevice, "null") == 0) {
 		Serial.println("Null command");
 		ret = 1;
 	} else {
-		pulseCount = bitMessages_makeNamedMsg(msg, cmdDevice, cmdParameter, cmdRepeat, cmdBitCount);
-		if(pulseCount > 0) {
-			Serial.printf("device %s command %s repeat %d pulses %d\r\n", cmdDevice, cmdParameter, cmdRepeat, pulseCount);
-			sendMsg(pulseCount, cmdRepeat);
-			ret = 1;
+		deviceIx = bitMessages_getDevice(cmdDevice);
+		if(deviceIx >= 0) {
+			cmdRepeat = bitMessages_getDeviceRepeat(deviceIx, cmdRepeat);
+			pulseCount = bitMessages_makeNamedMsg(msg, cmdDevice, cmdParameter, cmdRepeat, cmdBitCount);
+			if(pulseCount > 0) {
+				if(bitMessages_getDeviceFrequency(deviceIx) != irFrequency) {
+					irFrequency = bitMessages_getDeviceFrequency(deviceIx);
+					Serial.printf("Changing ir frequency to %d\r\n", irFrequency);
+					bitTx_init(irPin, irFrequency, IR_TIMER);
+				}
+				Serial.printf("device %s command %s repeat %d pulses %d\r\n", cmdDevice, cmdParameter, cmdRepeat, pulseCount);
+				sendMsg(pulseCount, cmdRepeat);
+				ret = 1;
+			} else {
+				cmdWait = 0;
+				ret = 0;
+			}
 		} else {
-			cmdWait = 0;
-			ret = 0;
+			Serial.printf("Unknown device %s\r\n", cmdDevice);
 		}
 	}
-	if(cmdWait > 0) Serial.printf("Waitng %d mSec\r\n", cmdWait);
+	if(cmdWait > 0) Serial.printf("Waiting %d mSec\r\n", cmdWait);
 	return ret;
 }
 

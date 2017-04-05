@@ -89,19 +89,6 @@ int bitMessages_getButton(int device, char* buttonString) {
 	return -1;
 }
 
-//return repeat to use for named device
-int bitMessages_getDeviceRepeat(char* deviceString, int repeat) {
-	int deviceIndex, locRepeat;
-	deviceIndex = bitMessages_getDevice(deviceString);
-	if(deviceIndex >=0) {
-		if(repeat >= devices[deviceIndex].minRepeat)
-			return repeat;
-		else
-			return devices[deviceIndex].minRepeat;
-	} else {
-		return repeat;
-	}
-}
 
 // return device data functions
 int bitMessages_getDeviceCount() {return NUMBER_DEVICES;}
@@ -111,10 +98,23 @@ char* bitMessages_getDeviceDataTrailer(int device) {return devices[device].trail
 char* bitMessages_getDeviceDataPulses0(int device) {return devices[device].pulses0;}
 char* bitMessages_getDeviceDataPulses1(int device) {return devices[device].pulses1;}
 char* bitMessages_getDeviceDataButton(int device, int button) {return devices[device].buttons[button];}
+int bitMessages_getDeviceFrequency(int device) {return devices[device].frequency;}
+int bitMessages_getDeviceSpecial(int device) {return devices[device].special;}
 int bitMessages_getDeviceBitCount(int device) {return devices[device].bitCount;}
 int bitMessages_getDeviceRepeatDelay(int device) {return devices[device].repeatDelay;}
 int bitMessages_getDeviceMinRepeat(int device) {return devices[device].minRepeat;}
 
+//return repeat to use  device
+int bitMessages_getDeviceRepeat(int device, int repeat) {
+	if(device >=0) {
+		if(repeat >= devices[device].minRepeat)
+			return repeat;
+		else
+			return devices[device].minRepeat;
+	} else {
+		return repeat;
+	}
+}
 
 //Add delay to message buffer
 int bitMessages_addDelay(uint16* msg, int delay) {

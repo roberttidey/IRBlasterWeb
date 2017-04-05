@@ -222,6 +222,7 @@ deviceData devices[NUMBER_DEVICES] = {
 	NULL, //trailer
 	"H550,L550",
 	"H550,L1600",
+	38000, //frequency
 	0, //Special handling
 	100, //repeat gap mSec
 	33, //bit count
@@ -233,6 +234,7 @@ deviceData devices[NUMBER_DEVICES] = {
 	NULL, //trailer
 	"H550,L550",
 	"H550,L1600",
+	38000, //frequency
 	0, //Special handling
 	100, //repeat gap mSec
 	33, //bit count
@@ -244,6 +246,7 @@ deviceData devices[NUMBER_DEVICES] = {
 	NULL, //trailer
 	"H550,L550",
 	"H550,L1600",
+	38000, //frequency
 	0, //Special handling
 	100, //repeat gap mSec
 	33, //bit count
@@ -255,6 +258,7 @@ deviceData devices[NUMBER_DEVICES] = {
 	NULL, //trailer
 	"H550,L550",
 	"H550,L1600",
+	38000, //frequency
 	0, //Special handling
 	100, //repeat gap mSec
 	33, //bit count
@@ -266,6 +270,7 @@ deviceData devices[NUMBER_DEVICES] = {
 	NULL, //trailer
 	"H500,L400",
 	"H500,L1250",
+	35000, //frequency
 	0, //Special handling
 	100, //repeat gap mSec
 	33, //bit count
@@ -277,6 +282,7 @@ deviceData devices[NUMBER_DEVICES] = {
 	NULL, //trailer
 	"H600,L550",
 	"H600,L1600",
+	38000, //frequency
 	0, //Special handling
 	75, //repeat gap mSec
 	33, //bit count
@@ -288,6 +294,7 @@ deviceData devices[NUMBER_DEVICES] = {
 	NULL, //trailer
 	"H600,L600",
 	"H600,L1700",
+	38000, //frequency
 	0, //Special handling
 	100, //repeat gap mSec
 	33, //bit count
@@ -299,6 +306,7 @@ deviceData devices[NUMBER_DEVICES] = {
 	NULL, //trailer
 	"H650,L600",
 	"H1250,L600",
+	40000, //frequency
 	0, //Special handling
 	100, //repeat gap mSec
 	33, //bit count
@@ -310,6 +318,7 @@ deviceData devices[NUMBER_DEVICES] = {
 	"L890", //trailer
 	"L890,H890",
 	"H890,L890",
+	36000, //frequency
 	0, //Special handling
 	45, //repeat gap mSec
 	33, //bit count
@@ -321,6 +330,7 @@ deviceData devices[NUMBER_DEVICES] = {
 	"L450", //trailer
 	"L450,H450",
 	"H450,L450",
+	36000, //frequency
 	1, //Special handling
 	45, //repeat gap mSec
 	33, //bit count

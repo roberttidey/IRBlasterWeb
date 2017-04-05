@@ -21,6 +21,7 @@ struct deviceData {
 	char* trailer;
 	char* pulses0;
 	char* pulses1;
+	int frequency;
 	int special;
 	int repeatDelay; //mSec
 	int bitCount;
@@ -33,7 +34,6 @@ extern int bitMessages_addPulses(uint16* msg, char* pulseString, int factor);
 extern int bitMessages_addDataPulses(uint16* msg, char* dataString, int bitCount, char* pulses0, char* pulses1, int special);
 extern int bitMessages_getDevice(char* deviceString);
 extern int bitMessages_getButton(int device, char* buttonString);
-extern int bitMessages_getDeviceRepeat(char* deviceString, int repeat);
 extern int bitMessages_addDelay(uint16* msg, int delay);
 extern int bitMessages_makeMsg(uint16* msg, char* header, char* trailer, char* dataString, int bitCount, char* pulses0, char* pulses1, int special, int repeatDelay);
 extern int bitMessages_makeNamedMsg(uint16* msg, char* deviceString, char* buttonString, int repeat, int bits);
@@ -46,7 +46,10 @@ extern char* bitMessages_getDeviceDataTrailer(int device);
 extern char* bitMessages_getDeviceDataPulses0(int device);
 extern char* bitMessages_getDeviceDataPulses1(int device);
 extern char* bitMessages_getDeviceDataButton(int device, int button);
+extern int bitMessages_getDeviceFrequency(int device);
+extern int bitMessages_getDeviceSpecial(int device);
 extern int bitMessages_getDeviceBitCount(int device);
 extern int bitMessages_getDeviceRepeatDelay(int device);
 extern int bitMessages_getDeviceMinRepeat(int device);
+extern int bitMessages_getDeviceRepeat(int device, int repeat);
 
