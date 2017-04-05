@@ -140,11 +140,16 @@ int bitMessages_makeMsg(uint16* msg, char* header, char* trailer, char* dataStri
 
 
 // Make message from device name and button name
-int bitMessages_makeNamedMsg(uint16* msg, char* deviceString, char* buttonString, int repeat) {
-	int deviceIx, buttonIx, delay = 0;
+int bitMessages_makeNamedMsg(uint16* msg, char* deviceString, char* buttonString, int repeat, int bits) {
+	int deviceIx, buttonIx, delay = 0, bCount;
 	char* button;
+	char* bitPrefix;
+	
 	deviceIx = bitMessages_getDevice(deviceString);
 	if(deviceIx >=0) {
+		// set default bit vount
+		bCount = devices[deviceIx].bitCount;
+		// Check for passing data through as hex string
 		if(buttonString[0] == HEX_ESCAPE) {
 			button = buttonString+1;
 		} else {
@@ -152,10 +157,29 @@ int bitMessages_makeNamedMsg(uint16* msg, char* deviceString, char* buttonString
 			if (buttonIx <= 0) return 0;
 			button = devices[deviceIx].buttons[buttonIx];
 		}
+		
+		//Check for string starting with COUNT_ESCAPE
+		if(button[0] == COUNT_ESCAPE) {
+			// Search for matching end bit prefix and convert to a bit count
+			bitPrefix = strchr(button+1, COUNT_ESCAPE);
+			if(bitPrefix != NULL) {
+				bitPrefix[0] = 0;
+				bCount = strtoul(button+1, NULL, 10);
+				bitPrefix[0] = COUNT_ESCAPE;
+				button = bitPrefix + 1;
+			} else {
+				// no matching end escape so ignore it
+				button++;
+			}
+		}
+		
+		// Override if supplied bits non zero
+		if(bits != 0) bCount = bits;
+		
 		if(repeat > 1 || devices[deviceIx].minRepeat > 1)
 			delay = devices[deviceIx].repeatDelay;
 		return bitMessages_makeMsg(msg, devices[deviceIx].header, devices[deviceIx].trailer, button,
-								devices[deviceIx].bitCount, devices[deviceIx].pulses0, devices[deviceIx].pulses1, delay);
+								bCount, devices[deviceIx].pulses0, devices[deviceIx].pulses1, delay);
 	} else {
 		return 0;
 	}

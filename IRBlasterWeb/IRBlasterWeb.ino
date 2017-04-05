@@ -27,7 +27,7 @@
 #define AP_GATEWAY 192,168,0,1
 #define AP_SUBNET 255,255,255,0
 
-#define AP_AUTHID "9999"
+#define AP_AUTHID "1234"
 #define IR_PIN 14
 #define IR_FREQUENCY 38000
 #define IR_TIMER 0
@@ -45,7 +45,7 @@ uint16 msg[MSG_LEN];
 #define NAME_LEN 16 
 char cmdDevice[NAME_LEN];
 char cmdParameter[NAME_LEN];
-int cmdRepeat, cmdWait = 0;
+int cmdRepeat, cmdWait = 0, cmdBitCount;
 
 ESP8266WebServer server(AP_PORT);
 ESP8266HTTPUpdateServer httpUpdater;
@@ -69,6 +69,7 @@ const char mainPage[] =
 "<INPUT type=\"text\" name=\"auth\" value=\"\">PinCode<BR>"
 "<INPUT type=\"text\" name=\"device\" value=\"yamaha\">Device<BR>"
 "<INPUT type=\"text\" name=\"parameter\" value=\"play\">Button<BR>"
+"<INPUT type=\"text\" name=\"bits\" value=\"0\">BitCount (0 default)<BR>"
 "<INPUT type=\"text\" name=\"repeat\" value=\"1\">Repeat<BR>"
 "<INPUT type=\"text\" name=\"wait\" value=\"100\">Wait mSec<BR>"
 "<INPUT type=\"submit\" value=\"Send\">"
@@ -147,6 +148,7 @@ void processIRargs() {
 		server.arg("parameter").toCharArray(cmdParameter, NAME_LEN);
 		cmdRepeat = server.arg("repeat").toInt();
 		cmdWait = server.arg("wait").toInt();
+		cmdBitCount = server.arg("bits").toInt();
 		if(processIRCommand())
 			server.send(200, "text/json", "Valid args object being processed");
 		else
@@ -177,6 +179,7 @@ void processIRjson() {
 			strcpy(cmdParameter,jsData[i]["parameter"].asString());
 			cmdRepeat = jsData[i]["repeat"].as<int>();
 			cmdWait = jsData[i]["wait"].as<int>();
+			cmdBitCount = jsData[i]["bits"].as<int>();
 			if(!processIRCommand()) {
 				break;
 			}
@@ -188,7 +191,7 @@ void processIRjson() {
  Process single IR command
 */
 int processIRCommand() {
-	int bitCount = 0;
+	int pulseCount = 0;
 	int ret = 0;
 	
 	if(cmdRepeat == 0) cmdRepeat = 1;
@@ -197,10 +200,10 @@ int processIRCommand() {
 		Serial.println("Null command");
 		ret = 1;
 	} else {
-		bitCount = bitMessages_makeNamedMsg(msg, cmdDevice, cmdParameter, cmdRepeat);
-		if(bitCount > 0) {
-			Serial.printf("device %s command %s repeat %d\r\n", cmdDevice, cmdParameter, cmdRepeat);
-			sendMsg(bitCount, cmdRepeat);
+		pulseCount = bitMessages_makeNamedMsg(msg, cmdDevice, cmdParameter, cmdRepeat, cmdBitCount);
+		if(pulseCount > 0) {
+			Serial.printf("device %s command %s repeat %d pulses %d\r\n", cmdDevice, cmdParameter, cmdRepeat, pulseCount);
+			sendMsg(pulseCount, cmdRepeat);
 			ret = 1;
 		} else {
 			cmdWait = 0;

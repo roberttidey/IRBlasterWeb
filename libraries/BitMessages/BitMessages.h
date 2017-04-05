@@ -9,6 +9,7 @@
 
 #define TICK_PERIOD 3.2
 #define HEX_ESCAPE '%'
+#define COUNT_ESCAPE '#'
 
 struct deviceData {
 	char* deviceName;
@@ -30,7 +31,7 @@ extern int bitMessages_getButton(int device, char* buttonString);
 extern int bitMessages_getDeviceRepeat(char* deviceString, int repeat);
 extern int bitMessages_addDelay(uint16* msg, int delay);
 extern int bitMessages_makeMsg(uint16* msg, char* header, char* trailer, char* dataString, int bitCount, char* pulses0, char* pulses1, int repeatDelay);
-extern int bitMessages_makeNamedMsg(uint16* msg, char* deviceString, char* buttonString, int repeat);
+extern int bitMessages_makeNamedMsg(uint16* msg, char* deviceString, char* buttonString, int repeat, int bits);
 
 //DeviceData access routines
 extern int bitMessages_getDeviceCount();

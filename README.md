@@ -10,12 +10,19 @@ Update OTA to new binary firmare at ip/firmware
 Command arguments
   auth (pincode or password to match built in value)
   device (name of remote control)
-  parameter (name of button on remote control)
+  parameter
     If %is 1st char then the following hex code is used rather than looking up in device config
   repeat (number of times to send ir code)
   wait (mSec delay after sending code)
+  bits 0 for default, non zero overrides device definition
   
-JSON version is an array of commands allowing a sequence to be used.
+  parameter is normally the name of the button on the control and the code to use is found in the device config.
+    If % is the first char of the parameter then the following code is used rather than looking up in device config
+	Code definitions are normally just the hex bits to send. THe definition may start with #bitcount# to override the
+    default bit count for the device. This may be used in the device table or in supplied parameters. For example,
+    %#20#12345 will send 20 bits from the hex string 12345	
+  
+JSON version is an array of commands using the same arguments allowing a sequence to be used.
 
 Config
   Edit IRBlasterWeb.ino
@@ -28,8 +35,8 @@ Config
 	update_password
 	
 Remote controls
-  These are defined in BitDevices.h 
-  Currently 3 devices are defined (Yamaha AV Box, LGTV, YouView(BT) )
+  These are defined in BitDevices.h in the BitMessages library
+  Currently 3 devices are fully defined (Yamaha AV Box, LGTV, YouView(BT) )
   To add a new device
     Increase NUMBER_DEVICES
 	Create an array of buttons and Hex codes for that button
