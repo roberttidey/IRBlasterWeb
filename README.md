@@ -58,4 +58,11 @@ Libraries
   BitTx Bit bang routines to execute a pulse sequence
     Interrupt driven and supports accurate modulation
 	
+Tool for gathering codes from a remote
+  This is a simple python program (rxir.py) expected to run on a Raspberry Pi and using a demodulated IR receiver connected to a GPIO.
+  Create a text file with a list of button names (broken into subsets for convenience). These files are named device-subset. When
+  run it will prompt for device,subset and coding type (nec,rc5,rc6). The user is then asked to press the buttons. 
+  The codes are then appended to a file called device.ircodes.
+  
+	
 

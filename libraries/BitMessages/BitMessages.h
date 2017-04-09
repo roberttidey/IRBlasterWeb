@@ -11,9 +11,9 @@
 #define HEX_ESCAPE '%'
 #define COUNT_ESCAPE '#'
 
-//definitions for special handling when adding data pulses
-#define SPECIAL_NORMAL 0
-#define SPECIAL_RC6 1
+//bit definitions for special handling when adding data pulses
+#define SPECIAL_NORMAL 0x0000
+#define SPECIAL_RC6 0x0001
 
 struct deviceData {
 	char* deviceName;

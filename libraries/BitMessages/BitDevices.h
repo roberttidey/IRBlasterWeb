@@ -9,7 +9,7 @@
 //lgtv, yamaha, youview fully defined
 //nec,panasonic,jvc,samsung,sony,rc51,rc61 untested placeholders and need button codes
 
-char* lgtvMsgs[] = {
+char* lgTVMsgs[] = {
 	"LGTV-ON","20DF10EF",
 	"HELP","20DF5EA1",
 	"RATIO","20DF9E61",
@@ -65,7 +65,7 @@ char* lgtvMsgs[] = {
 };
 
 
-char* yamahaMsgs[] = {
+char* yamahaAVMsgs[] = {
 	"YAMAHA_ON","7E8154AB",
 	"HDMI1","5EA1E21C",
 	"HDMI2","5EA152AC",
@@ -208,16 +208,88 @@ char* sonyMsgs[] = {
 	NULL
 };
 
-char* rc51Msgs[] = {
-	NULL
-};
+char* virginCableMsgs[] = {
+"VIRGIN-ON","D460",
+"HOME","5478",
+"TV","5498",
+"GUIDE","1490",
+"CURSORUP","5480",
+"INFO","9578",
+"CURSORBACK","D510",
+"CURSORLEFT","14A8",
+"CURSOROK","54B8",
+"CURSORRIGHT","14B0",
+"TEXT","5550",
+"CURSORDOWN","1488",
+"SUBTITLES","D4D0",
+"MYSHOWS","94A8",
+"CHANNELUP","D500",
+"CHANNELDOWN","D508",
+"DISLIKE","94B0",
+"RECORD","D5B8",
+"LIKE","94B8",
+"PLAY","D580",
+"FASTBACK","9590",
+"PAUSE","D498",
+"FASTFORWARD","95A0",
+"STOP","D5B0",
+"SKIPBACK","9550",
+"SLOW","D4C0",
+"SKIPFORWARD","9558",
+"RED","5558",
+"GREEN","1560",
+"YELLOW","5568",
+"BLUE","1570",
+"KEY1","9408",
+"KEY2","D410",
+"KEY3","9418",
+"KEY4","D420",
+"KEY5","9428",
+"KEY6","D430",
+"KEY7","9438",
+"KEY8","D440",
+"KEY9","9448",
+"KEYCLEAR","D4C8",
+"KEY0","9400",
+"KEYLASTCH","D4A0",
+NULL};
 
-char* rc61Msgs[] = {
-	NULL
+char* philipsDVDMsgs[] = {
+"ON","DF670",
+"MENU","E065C",
+"DISPLAY","DF7E0",
+"CURSORUP","E074E",
+"CURSORLEFT","DF74A",
+"CURSOROK","E0746",
+"CURSORRIGHT","DF748",
+"CURSORDOWN","E074C",
+"TITLE","DF6F8",
+"SETUP","E06FA",
+"PREV","DF7BC",
+"NEXT","E07BE",
+"PLAYPAUSE","DF7A6",
+"STOP","E079C",
+"USB","DF702",
+"KEY1","E07FC",
+"KEY2","DF7FA",
+"KEY3","E07F8",
+"KEY4","DF7F6",
+"KEY5","E07F4",
+"KEY6","DF7F2",
+"KEY7","E07F0",
+"KEY8","DF7EE",
+"KEY9","E07EC",
+"SUBTITLE","DF768",
+"KEY0","E07FE",
+"AUDIO","DF762",
+"ZOOM","E0610",
+"REPEAT","DF7C4",
+"REPEATAB","E0788",
+NULL
 };
 
 deviceData devices[NUMBER_DEVICES] = {
-	"lgtv",
+	"lgTV",
 	"H9000,L4500", //header
 	NULL, //trailer
 	"H550,L550",
@@ -227,9 +299,9 @@ deviceData devices[NUMBER_DEVICES] = {
 	100, //repeat gap mSec
 	33, //bit count
 	1, // minimum repeat
-	lgtvMsgs,
+	lgTVMsgs,
 	
-	"yamaha",
+	"yamahaAV",
 	"H9000,L4500", //header
 	NULL, //trailer
 	"H550,L550",
@@ -239,7 +311,7 @@ deviceData devices[NUMBER_DEVICES] = {
 	100, //repeat gap mSec
 	33, //bit count
 	1, // minimum repeat
-	yamahaMsgs,
+	yamahaAVMsgs,
 	
 	"youview",
 	"H9000,L4500", //header
@@ -313,7 +385,7 @@ deviceData devices[NUMBER_DEVICES] = {
 	2, // minimum repeat
 	sonyMsgs,
 	
-	"rc51",
+	"virginCable",
 	"H890,L890,H890", //header
 	"L890", //trailer
 	"L890,H890",
@@ -321,21 +393,21 @@ deviceData devices[NUMBER_DEVICES] = {
 	36000, //frequency
 	0, //Special handling
 	45, //repeat gap mSec
-	33, //bit count
+	13, //bit count
 	1, // minimum repeat
-	rc51Msgs,
+	virginCableMsgs,
 
-	"rc61",
-	"H2700,L890,H450,L450", //header
+	"philipsDVD",
+	"H2700,L890", //header
 	"L450", //trailer
 	"L450,H450",
 	"H450,L450",
 	36000, //frequency
 	1, //Special handling
 	45, //repeat gap mSec
-	33, //bit count
+	19, //bit count
 	1, // minimum repeat
-	rc61Msgs
+	philipsDVDMsgs
 
 };
 

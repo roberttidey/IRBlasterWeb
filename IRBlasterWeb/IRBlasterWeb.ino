@@ -27,7 +27,7 @@
 #define AP_GATEWAY 192,168,0,1
 #define AP_SUBNET 255,255,255,0
 
-#define AP_AUTHID "1234"
+#define AP_AUTHID "2718"
 
 #define IR_TIMER 0
 int irPin = 14; // 2 or 14
@@ -68,7 +68,7 @@ const char mainPage[] =
 "<P>"
 "Command<br>"
 "<INPUT type=\"text\" name=\"auth\" value=\"\">PinCode<BR>"
-"<INPUT type=\"text\" name=\"device\" value=\"yamaha\">Device<BR>"
+"<INPUT type=\"text\" name=\"device\" value=\"yamahaAV\">Device<BR>"
 "<INPUT type=\"text\" name=\"parameter\" value=\"play\">Button<BR>"
 "<INPUT type=\"text\" name=\"bits\" value=\"0\">BitCount (0 default)<BR>"
 "<INPUT type=\"text\" name=\"repeat\" value=\"1\">Repeat<BR>"
@@ -221,7 +221,11 @@ int processIRCommand() {
 			Serial.printf("Unknown device %s\r\n", cmdDevice);
 		}
 	}
-	if(cmdWait > 0) Serial.printf("Waiting %d mSec\r\n", cmdWait);
+	if(cmdWait > 0) {
+		Serial.printf("Waiting %d mSec\r\n", cmdWait);
+		delay(cmdWait);
+		cmdWait = 0;
+	}
 	return ret;
 }
 
@@ -253,9 +257,5 @@ void sendMsg(int count, int repeat) {
 
 void loop() {
 	server.handleClient();
-	if(cmdWait > 0) {
-		delay(cmdWait);
-		cmdWait = 0;
-	}
 	delay(10);
 }

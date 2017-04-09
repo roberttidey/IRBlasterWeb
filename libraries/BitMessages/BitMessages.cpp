@@ -35,7 +35,7 @@ int bitMessages_addPulses(uint16* msg, char* pulseString, int factor) {
 }
 
 int bitMessages_addDataPulses(uint16* msg, char* dataString, int bitCount, char* pulses0, char* pulses1, int special) {
-	int count=0,i,j,b, factor;
+	int count=0,i,j,b, factor=1;
 	char c;
 	if(dataString == NULL) {
 		return 0;
@@ -53,12 +53,8 @@ int bitMessages_addDataPulses(uint16* msg, char* dataString, int bitCount, char*
 			c = (c > '9')? (c &~ 0x20) - 'A' + 10: (c - '0');
 			b = 0x08;
 		}
-		// select any special timing factor
-		switch(special) {
-			case SPECIAL_NORMAL: factor = 1; break;
-			case SPECIAL_RC6: factor = (j!=3) ? 1 : 2; break;
-			default : factor = 1;
-		}
+		// handle any special requirements
+		if(special & SPECIAL_RC6 !=0) factor = (j!=3) ? 1 : 2;
 		if(c&b)
 			count += bitMessages_addPulses(msg+count, pulses1, factor);
 		else
