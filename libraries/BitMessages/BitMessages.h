@@ -14,6 +14,7 @@
 //bit definitions for special handling when adding data pulses
 #define SPECIAL_NORMAL 0x0000
 #define SPECIAL_RC6 0x0001
+#define SPECIAL_TOGGLE 0x0002
 
 struct deviceData {
 	char* deviceName;
@@ -26,6 +27,7 @@ struct deviceData {
 	int repeatDelay; //mSec
 	int bitCount;
 	int minRepeat; //repeat 1 is send once
+	int toggle; // holds toggle state if used
 	char** buttons;
 };
 

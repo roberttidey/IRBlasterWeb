@@ -10,38 +10,38 @@
 //nec,panasonic,jvc,samsung,sony,rc51,rc61 untested placeholders and need button codes
 
 char* lgTVMsgs[] = {
-	"LGTV-ON","20DF10EF",
+	"ONOFF","20DF10EF",
 	"HELP","20DF5EA1",
 	"RATIO","20DF9E61",
 	"INPUT","20DFD02F",
 	"TVRAD","20DF0FF0",
-	"KEY1","20DF8877",
-	"KEY2","20DF48B7",
-	"KEY3","20DFC837",
-	"KEY4","20DF28D7",
-	"KEY5","20DFA857",
-	"KEY6","20DF6897",
-	"KEY7","20DFE817",
-	"KEY8","20DF18E7",
-	"KEY9","20DF9867",
+	"1","20DF8877",
+	"2","20DF48B7",
+	"3","20DFC837",
+	"4","20DF28D7",
+	"5","20DFA857",
+	"6","20DF6897",
+	"7","20DFE817",
+	"8","20DF18E7",
+	"9","20DF9867",
 	"KEYLIST","20DFCA35",
-	"KEY0","20DF08F7",
+	"0","20DF08F7",
 	"KEYVIEW","20DF58A7",
-	"VOLUMEUP","20DF40BF",
+	"VOLUP","20DF40BF",
 	"FAV","20DF7887",
-	"PROGRAMUP","20DF00FF",
+	"PROGUP","20DF00FF",
 	"INFO","20DF55AA",
-	"VOLUMEDOWN","20DFC03F",
+	"VOLDOWN","20DFC03F",
 	"MUTE","20DF906F",
-	"PROGRAMMEDOWN","20DF807F",
+	"PROGDOWN","20DF807F",
 	"SETTINGS","20DFC23D",
 	"HOME","20DF3EC1",
 	"MYAPPS","206FA15E",
-	"CURSORUP","20DF02FD",
-	"CURSORLEFT","20DFE01F",
-	"CURSOROK","20DF22DD",
-	"CURSORRIGHT","20DF609F",
-	"CURSORDOWN","20DF827D",
+	"UP","20DF02FD",
+	"LEFT","20DFE01F",
+	"OK","20DF22DD",
+	"RIGHT","20DF609F",
+	"DOWN","20DF827D",
 	"BACK","20DF14EB",
 	"GUIDE","20DFD52A",
 	"EXIT","20DFDA25",
@@ -66,7 +66,7 @@ char* lgTVMsgs[] = {
 
 
 char* yamahaAVMsgs[] = {
-	"YAMAHA_ON","7E8154AB",
+	"ONOFF","7E8154AB",
 	"HDMI1","5EA1E21C",
 	"HDMI2","5EA152AC",
 	"HDMI3","5EA1B24C",
@@ -79,17 +79,17 @@ char* yamahaAVMsgs[] = {
 	"AV5","5EA1FA04",
 	"AV6","5EA146B8",
 	"SINGLESTAR","5EA116E8",
-	"V-AUX","5EA1AA55",
+	"AUX","5EA1AA55",
 	"USB","FE804EB0",
 	"NET","FE80FC03",
 	"AUDIO","5EA1A658",
 	"FM","FE801AE4",
 	"AM","FE80AA54",
-	"PRESETUP","FE80DA24",
+	"PROGUP","FE80DA24",
 	"TUNINGUP","FE808678",
 	"INFO","5EA1E41A",
 	"MEMORY","FE80E618",
-	"PRESETDOWN","FE807A84",
+	"PROGDOWN","FE807A84",
 	"TUNINGDOWN","FE8026D8",
 	"MOVIE","5EA111EE",
 	"MUSIC","5EA1916E",
@@ -98,21 +98,21 @@ char* yamahaAVMsgs[] = {
 	"BEEP","5EA10CF3",
 	"ENHANCER","5EA129D6",
 	"DIRECT","5EA1BB44",
-	"SCENE-DVD","5EA100FE",
-	"SCENE-TV","5EA1C03E",
-	"SCENE-NET","5EA1609E",
-	"SCENE-RADIO","5EA1906E",
+	"SCENEDVD","5EA100FE",
+	"SCENETV","5EA1C03E",
+	"SCENENET","5EA1609E",
+	"SCENERADIO","5EA1906E",
 	"SETUP","5EA121DE",
-	"KEYUP","5EA1B946",
+	"UP","5EA1B946",
 	"OPTION","5EA1D628",
-	"VOLUMEUP","5EA158A7",
-	"KEYLEFT","5EA1F906",
-	"KEYENTER","5EA17B84",
-	"KEYRIGHT","5EA17986",
-	"KEYRETURN","5EA155AA",
-	"KEYDOWN","5EA139C6",
+	"VOLUP","5EA158A7",
+	"LEFT","5EA1F906",
+	"OK","5EA17B84",
+	"RIGHT","5EA17986",
+	"RETURN","5EA155AA",
+	"DOWN","5EA139C6",
 	"DISPLAY","FE8006F9",
-	"VOLUMEDOWN","5EA1D827",
+	"VOLDOWN","5EA1D827",
 	"TOPMENU","5EA105FB",
 	"POPUPMENU","5EA125DB",
 	"MUTE","5EA138C7",
@@ -122,68 +122,68 @@ char* yamahaAVMsgs[] = {
 	"PLAY","FE8016E9",
 	"FASTBACK","FE8056A9",
 	"FASTFORWARD","FE80D629",
-	"BACkHOME","FE8036C9",
+	"BACKHOME","FE8036C9",
 	"FORWARDEND","FE80B649",
-	"KEY1","FE808A75",
-	"KEY2","FE804AB5",
-	"KEY3","FE80CA35",
-	"KEY4","FE802AD5",
-	"KEY5","FE80AA55",
-	"KEY6","FE806A95",
-	"KEY7","FE80EA15",
-	"KEY8","FE801AE5",
-	"KEY9","FE809A65",
-	"KEY0","FE805AA5",
-	"KEY+10","FE80DA25",
+	"1","FE808A75",
+	"2","FE804AB5",
+	"3","FE80CA35",
+	"4","FE802AD5",
+	"5","FE80AA55",
+	"6","FE806A95",
+	"7","FE80EA15",
+	"8","FE801AE5",
+	"9","FE809A65",
+	"0","FE805AA5",
+	"PLUS10","FE80DA25",
 	"KEYENT","FE803AC5",
 	NULL
 };
 
 char* youviewMsgs[] = {
-	"YOUVIEW_ON","000800FF",
+	"ONOFF","000800FF",
 	"ZOOM","0008807F",
 	"TEXT","00087689",
 	"HELP","0008E817",
 	"BTPLAYER","0008D22D",
-	"MAINMENU","0008708F",
+	"MENU","0008708F",
 	"RED","000838C7",
 	"GREEN","0008B847",
 	"YELLOW","000858A7",
 	"BLUE","00087887",
-	"OUTERPLUS","0008F807",
+	"VOLUP","0008F807",
 	"INFO","0008C23D",
-	"OUTERUP","000808F7",
-	"OUTERMUTE","000818E7",
-	"INNERLEFT","000848B7",
-	"INNERUP","00088877",
-	"INNEROK","0008C837",
-	"INNERDOWN","0008A857",
-	"INNERRIGHT","000828D7",
-	"OUTERMINUS","000802FD",
-	"OUTERBACK","0008827D",
-	"OUTERDOWN","0008F00F",
+	"PROGUP","000808F7",
+	"MUTE","000818E7",
+	"LEFT","000848B7",
+	"UP","00088877",
+	"OK","0008C837",
+	"DOWN","0008A857",
+	"RIGHT","000828D7",
+	"VOLDOWN","000802FD",
+	"BACK","0008827D",
+	"PROGDOWN","0008F00F",
 	"FASTBACK","0008A659",
 	"PLAY","000806F9",
 	"PAUSE","000846B9",
 	"FASTFORWARD","000826D9",
-	"BACKHOME","00086699",
+	"SKIPBACK","00086699",
 	"RECORD","00088679",
 	"STOP","0008C639",
-	"FORWARDEND","0008E619",
+	"SKIPFORWARD","0008E619",
 	"GUIDE","0008D827",
 	"SEARCH","0008E21D",
 	"CLOSE","00086897",
-	"KEY1","0008C03F",
-	"KEY2","000820DF",
-	"KEY3","0008A05F",
-	"KEY4","0008609F",
-	"KEY5","0008E01F",
-	"KEY6","000810EF",
-	"KEY7","0008906F",
-	"KEY8","000850AF",
-	"KEY9","0008D02F",
+	"1","0008C03F",
+	"2","000820DF",
+	"3","0008A05F",
+	"4","0008609F",
+	"5","0008E01F",
+	"6","000810EF",
+	"7","0008906F",
+	"8","000850AF",
+	"9","0008D02F",
 	"KEYADDUP","000822DD",
-	"KEY0","000830CF",
+	"0","000830CF",
 	"KEYDELETE","0008629D",
 	NULL
 };
@@ -209,22 +209,22 @@ char* sonyMsgs[] = {
 };
 
 char* virginCableMsgs[] = {
-"VIRGIN-ON","D460",
+"ONOFF","D460",
 "HOME","5478",
 "TV","5498",
 "GUIDE","1490",
-"CURSORUP","5480",
+"UP","5480",
 "INFO","9578",
-"CURSORBACK","D510",
-"CURSORLEFT","14A8",
-"CURSOROK","54B8",
-"CURSORRIGHT","14B0",
+"BACK","D510",
+"LEFT","14A8",
+"OK","54B8",
+"RIGHT","14B0",
 "TEXT","5550",
-"CURSORDOWN","1488",
+"DOWN","1488",
 "SUBTITLES","D4D0",
 "MYSHOWS","94A8",
-"CHANNELUP","D500",
-"CHANNELDOWN","D508",
+"PROGUP","D500",
+"PROGDOWN","D508",
 "DISLIKE","94B0",
 "RECORD","D5B8",
 "LIKE","94B8",
@@ -240,29 +240,29 @@ char* virginCableMsgs[] = {
 "GREEN","1560",
 "YELLOW","5568",
 "BLUE","1570",
-"KEY1","9408",
-"KEY2","D410",
-"KEY3","9418",
-"KEY4","D420",
-"KEY5","9428",
-"KEY6","D430",
-"KEY7","9438",
-"KEY8","D440",
-"KEY9","9448",
+"1","9408",
+"2","D410",
+"3","9418",
+"4","D420",
+"5","9428",
+"6","D430",
+"7","9438",
+"8","D440",
+"9","9448",
 "KEYCLEAR","D4C8",
-"KEY0","9400",
+"0","9400",
 "KEYLASTCH","D4A0",
 NULL};
 
 char* philipsDVDMsgs[] = {
-"ON","DF670",
+"ONOFF","DF670",
 "MENU","E065C",
 "DISPLAY","DF7E0",
-"CURSORUP","E074E",
-"CURSORLEFT","DF74A",
-"CURSOROK","E0746",
-"CURSORRIGHT","DF748",
-"CURSORDOWN","E074C",
+"UP","E074E",
+"LEFT","DF74A",
+"OK","E0746",
+"RIGHT","DF748",
+"DOWN","E074C",
 "TITLE","DF6F8",
 "SETUP","E06FA",
 "PREV","DF7BC",
@@ -270,17 +270,17 @@ char* philipsDVDMsgs[] = {
 "PLAYPAUSE","DF7A6",
 "STOP","E079C",
 "USB","DF702",
-"KEY1","E07FC",
-"KEY2","DF7FA",
-"KEY3","E07F8",
-"KEY4","DF7F6",
-"KEY5","E07F4",
-"KEY6","DF7F2",
-"KEY7","E07F0",
-"KEY8","DF7EE",
-"KEY9","E07EC",
+"1","E07FC",
+"2","DF7FA",
+"3","E07F8",
+"4","DF7F6",
+"5","E07F4",
+"6","DF7F2",
+"7","E07F0",
+"8","DF7EE",
+"9","E07EC",
 "SUBTITLE","DF768",
-"KEY0","E07FE",
+"0","E07FE",
 "AUDIO","DF762",
 "ZOOM","E0610",
 "REPEAT","DF7C4",
@@ -299,6 +299,7 @@ deviceData devices[NUMBER_DEVICES] = {
 	100, //repeat gap mSec
 	33, //bit count
 	1, // minimum repeat
+	0, //toggle
 	lgTVMsgs,
 	
 	"yamahaAV",
@@ -311,6 +312,7 @@ deviceData devices[NUMBER_DEVICES] = {
 	100, //repeat gap mSec
 	33, //bit count
 	1, // minimum repeat
+	0, //toggle
 	yamahaAVMsgs,
 	
 	"youview",
@@ -323,6 +325,7 @@ deviceData devices[NUMBER_DEVICES] = {
 	100, //repeat gap mSec
 	33, //bit count
 	1, // minimum repeat
+	0, //toggle
 	youviewMsgs,
 	
 	"nec",
@@ -335,6 +338,7 @@ deviceData devices[NUMBER_DEVICES] = {
 	100, //repeat gap mSec
 	33, //bit count
 	1, // minimum repeat
+	0, //toggle
 	necMsgs,
 	
 	"panasonic",
@@ -347,6 +351,7 @@ deviceData devices[NUMBER_DEVICES] = {
 	100, //repeat gap mSec
 	33, //bit count
 	1, // minimum repeat
+	0, //toggle
 	panasonicMsgs,
 	
 	"jvc",
@@ -359,6 +364,7 @@ deviceData devices[NUMBER_DEVICES] = {
 	75, //repeat gap mSec
 	33, //bit count
 	1, // minimum repeat
+	0, //toggle
 	jvcMsgs,
 	
 	"samsung",
@@ -371,6 +377,7 @@ deviceData devices[NUMBER_DEVICES] = {
 	100, //repeat gap mSec
 	33, //bit count
 	1, // minimum repeat
+	0, //toggle
 	samsungMsgs,
 	
 	"sony",
@@ -383,6 +390,7 @@ deviceData devices[NUMBER_DEVICES] = {
 	100, //repeat gap mSec
 	33, //bit count
 	2, // minimum repeat
+	0, //toggle
 	sonyMsgs,
 	
 	"virginCable",
@@ -395,6 +403,7 @@ deviceData devices[NUMBER_DEVICES] = {
 	45, //repeat gap mSec
 	13, //bit count
 	1, // minimum repeat
+	0, //toggle
 	virginCableMsgs,
 
 	"philipsDVD",
@@ -407,6 +416,7 @@ deviceData devices[NUMBER_DEVICES] = {
 	45, //repeat gap mSec
 	19, //bit count
 	1, // minimum repeat
+	0, //toggle
 	philipsDVDMsgs
 
 };
