@@ -11,6 +11,7 @@
 #include <ArduinoJson.h>
 #include <ESP8266mDNS.h>
 #include <ESP8266HTTPUpdateServer.h>
+#include "FS.h"
 
 /*
  Web set up
@@ -27,7 +28,7 @@
 #define AP_GATEWAY 192,168,0,1
 #define AP_SUBNET 255,255,255,0
 
-#define AP_AUTHID "2718"
+#define AP_AUTHID "1234"
 
 #define IR_TIMER 0
 int irPin = 14; // 2 or 14
@@ -94,13 +95,16 @@ void setup() {
 	MDNS.addService("http", "tcp", AP_PORT);
 
 	Serial.println("Set up Web command handlers");
-	server.on("/irjson" ,processIRjson);
-	server.on("/ir", processIRargs);
+	server.on("/irjson" ,processIrjson);
+	server.on("/ir", processIr);
+	server.on("/macro", saveMacro);
 	server.on("/check", checkStatus);
 	server.on("/", indexHTML);
 	server.begin();
 	Serial.println("Set up IR sender");
 	bitTx_init(irPin, irFrequency, IR_TIMER);
+	Serial.println("Set up filing system");
+	initFS();
 	
 	Serial.println("Set up complete");
 }
@@ -137,10 +141,28 @@ int wifiConnect()
 	} 
 }
 
+void initFS() {
+	SPIFFS.begin();
+	File f = SPIFFS.open("/wait5", "r");
+	if(!f) {
+		Serial.println("No wait5 file present. Init SIFFS using Arduino tool");
+	} else {
+		f.close();
+		Serial.println("SPIFFS file list");
+		Dir dir = SPIFFS.openDir("/");
+		while (dir.next()) {
+			Serial.print(dir.fileName());
+			Serial.print(" - ");
+			Serial.println(dir.fileSize());
+		}
+	}
+}
+
 /*
 Process IR commands with args
 */
-void processIRargs() {
+void processIr() {
+	Serial.println("Get args command received");
 	if (server.arg("auth") != AP_AUTHID) {
 		Serial.println("Unauthorized");
 		server.send(401, "text/html", "Unauthorized");	cmdRepeat = 1;
@@ -150,8 +172,8 @@ void processIRargs() {
 		cmdRepeat = server.arg("repeat").toInt();
 		cmdWait = server.arg("wait").toInt();
 		cmdBitCount = server.arg("bits").toInt();
-		if(processIRCommand())
-			server.send(200, "text/json", "Valid args object being processed");
+		if(processIrCommand() == 0)
+			server.send(200, "text/html", "Valid args object being processed");
 		else
 			server.send(400, "text/html", "Failed");
 	}
@@ -160,20 +182,72 @@ void processIRargs() {
 /*
 Process IR commands with json
 */
-void processIRjson() {
-	DynamicJsonBuffer jsonBuf;
-	JsonArray& jsData = jsonBuf.parseArray(server.arg("plain"));
+void processIrjson() {
+	String json;
 	int i;
 	
 	Serial.println("Json command received");
-    if (!jsData.success()) {
-		Serial.println("JSON parsing failed");
-		server.send(400, "text/html", "Failed");
-    } else if (server.arg("auth") != AP_AUTHID) {
+    if (server.arg("auth") != AP_AUTHID) {
 		Serial.println("Unauthorized");
 		server.send(401, "text/html", "Unauthorized");
-    } else {
-		server.send(200, "text/json", "Valid JSON object being processed");
+	} else {
+		json = server.arg("plain");
+		processJsonString(json, 1);
+	}
+}
+
+void saveMacro() {
+	String macro;
+	String macroname;
+	String json;
+	int i;
+	
+	Serial.println("save macro received");
+    if (server.arg("auth") != AP_AUTHID) {
+		Serial.println("Unauthorized");
+		server.send(401, "text/html", "Unauthorized");
+	} else {
+		macroname = server.arg("macro");
+		if(macroname.length() > 0) {
+			json = server.arg("plain");
+			if(json.length() > 0) {
+				File f = SPIFFS.open("/" + macroname, "w");
+				f.print(json);
+				f.close();
+				Serial.print(macroname);
+				Serial.println(" saved as macro");
+				server.send(200, "text/html", "macro saved OK");
+			} else {
+				Serial.print(macroname);
+				Serial.println(" removed if present");
+				SPIFFS.remove("/" + macroname);
+				server.send(200, "text/html", "macro removed");
+			}
+			File f = SPIFFS.open("/" + macroname, "w");
+			f.print(json);
+			f.close();
+			server.send(200, "text/html", "macro saved OK");
+		} else {
+			server.send(401, "text/html", "No macro name");
+		}
+	}
+}
+
+
+/*
+Process Json string as command array
+*/
+int processJsonString(String json, int sendResponse) {
+	DynamicJsonBuffer jsonBuf;
+	JsonArray& jsData = jsonBuf.parseArray(json);
+	int i;
+	
+	if (!jsData.success()) {
+		Serial.println("JSON parsing failed");
+		if(sendResponse) server.send(400, "text/html", "Failed");
+		return 1; // parsing error
+	} else {
+		if(sendResponse) server.send(200, "text/json", "Valid JSON command being processed");
 		for (i = 0; i < jsData.size(); i++) {
 			cmdRepeat = 1;
 			strcpy(cmdDevice,jsData[i]["device"].asString());
@@ -181,24 +255,42 @@ void processIRjson() {
 			cmdRepeat = jsData[i]["repeat"].as<int>();
 			cmdWait = jsData[i]["wait"].as<int>();
 			cmdBitCount = jsData[i]["bits"].as<int>();
-			if(!processIRCommand()) {
-				break;
+			if(processIrCommand() != 0) {
+				return 2; // invalid command in array
 			}
 		}
+		return 0; //success
 	}
 }
+
 
 /*
  Process single IR command
 */
-int processIRCommand() {
+int processIrCommand() {
 	int pulseCount = 0, deviceIx;
 	int ret = 0;
 	
 	if(cmdRepeat == 0) cmdRepeat = 1;
 	if(strcmpi(cmdDevice, "null") == 0) {
 		Serial.println("Null command");
-		ret = 1;
+		ret = 0;
+	} else if(strcmpi(cmdDevice, "macro") == 0) {
+		File f = SPIFFS.open("/" + String(cmdParameter), "r");
+		if(f) {
+			Serial.printf("Executing macro %s\r\n", cmdParameter);
+			String json = f.readStringUntil(char(0));
+			f.close();
+			if(json.length()>2) {
+				ret = processJsonString(json, 0);
+			} else {
+				Serial.printf("Macro %s too short\r\n", cmdParameter);
+				ret = 1;
+			}
+		} else {
+			Serial.printf("Macro %s not found\r\n", cmdParameter);
+			ret = 1;
+		}
 	} else {
 		deviceIx = bitMessages_getDevice(cmdDevice);
 		if(deviceIx >= 0) {
@@ -212,12 +304,13 @@ int processIRCommand() {
 				}
 				Serial.printf("device %s command %s repeat %d pulses %d\r\n", cmdDevice, cmdParameter, cmdRepeat, pulseCount);
 				sendMsg(pulseCount, cmdRepeat);
-				ret = 1;
+				ret = 0;
 			} else {
 				cmdWait = 0;
-				ret = 0;
+				ret = 1;
 			}
 		} else {
+			ret = 2;
 			Serial.printf("Unknown device %s\r\n", cmdDevice);
 		}
 	}

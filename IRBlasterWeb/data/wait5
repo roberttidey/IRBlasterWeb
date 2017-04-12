@@ -1,0 +1,9 @@
+[
+	{
+		"device":"null",
+		"parameter":"hdmi4",
+		"wait":"5000",
+		"bits":"0",
+		"repeat":"1"
+	}
+]
