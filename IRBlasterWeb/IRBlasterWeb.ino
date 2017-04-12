@@ -223,10 +223,6 @@ void saveMacro() {
 				SPIFFS.remove("/" + macroname);
 				server.send(200, "text/html", "macro removed");
 			}
-			File f = SPIFFS.open("/" + macroname, "w");
-			f.print(json);
-			f.close();
-			server.send(200, "text/html", "macro saved OK");
 		} else {
 			server.send(401, "text/html", "No macro name");
 		}
