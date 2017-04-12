@@ -4,7 +4,7 @@ Infra Red remote control blaster using esp8266
 Transmits remote control codes freceived from Web.
 Built in simple web page mainly for testing. ip/ir
 Normal use is via POST messages. ip/irjson
-Status check at ip/check
+Status check at ip/check (also returns list of macros)
 Update OTA to new binary firmare at ip/firmware
 Macro facility using files stored on SPIFFS
 

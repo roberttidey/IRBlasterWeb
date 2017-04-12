@@ -330,8 +330,15 @@ Serial.println("Main page requested");
  Check status command received from web
 */
 void checkStatus() {
+	String response = "IR Blaster is running<BR>Macros<BR>";
+	
 	Serial.println("Check status received");
-    server.send(200, "text/html", "IR Blaster is running");
+	Dir dir = SPIFFS.openDir("/");
+	while (dir.next()) {
+		response += dir.fileName() + " - " + dir.fileSize() + "<BR>";
+	}
+	
+    server.send(200, "text/html", response);
 }
 
 /*
