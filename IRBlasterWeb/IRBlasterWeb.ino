@@ -165,7 +165,7 @@ void processIr() {
 	Serial.println("Get args command received");
 	if (server.arg("auth") != AP_AUTHID) {
 		Serial.println("Unauthorized");
-		server.send(401, "text/html", "Unauthorized");	cmdRepeat = 1;
+		server.send(401, "text/html", "Unauthorized");
 	} else {
 		server.arg("device").toCharArray(cmdDevice, NAME_LEN);
 		server.arg("parameter").toCharArray(cmdParameter, NAME_LEN);

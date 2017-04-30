@@ -233,6 +233,8 @@ def get_rc6(leader=2200, pulse=450, endgap=3000):
 def get_ir(codetype):
 	if codetype == 'nec':
 		return get_nec()
+	elif codetype == 'nec1':
+		return get_nec(4500)
 	elif codetype == 'rc5':
 		return get_rc5()
 	elif codetype == 'rc6':
@@ -256,7 +258,7 @@ def waitForQuiet(period=1):
 GPIO.setup(GPIO_RXDATA,GPIO.IN)  #
 remotename = raw_input('name of remote control :')
 buttons = raw_input('name of subset buttons :')
-codetype = raw_input('codetype (nec,rc5,rc6) :')
+codetype = raw_input('codetype (nec,nec1,rc5,rc6) :')
 with open(remotename + '-' + buttons) as f:
     clines = f.read().splitlines() 
 codefile = open(remotename + CODE_EXT,"a")
@@ -266,7 +268,7 @@ try:
 	for cline in clines:
 		waitForQuiet()
 		print "Press Remote button ",cline
-		codefile.write(cline + ',' + get_ir(format) + '\n')
+		codefile.write(cline + ',' + get_ir(codetype) + '\n')
 except KeyboardInterrupt:
 	pass
 	
