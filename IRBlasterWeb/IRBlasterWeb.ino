@@ -12,9 +12,11 @@
 #include <ESP8266mDNS.h>
 #include <ESP8266HTTPUpdateServer.h>
 #include "FS.h"
+#include <DNSServer.h>
+#include <WiFiManager.h>
 
 /*
- Web set up
+ Manual Web set up
 */
 
 #define AP_SSID "ssid"
@@ -27,6 +29,13 @@
 #define AP_DNS 192,168,0,1
 #define AP_GATEWAY 192,168,0,1
 #define AP_SUBNET 255,255,255,0
+
+/*
+Wifi Manager Web set up
+If WM_NAME defined then use WebManager
+*/
+#define WM_NAME "irWebSetup"
+#define WM_PASSWORD "password"
 
 #define AP_AUTHID "1234"
 
@@ -44,10 +53,13 @@ const char* update_password = "password";
 uint16 msg[MSG_LEN];
 
 //Web command paramters
-#define NAME_LEN 16 
+#define NAME_LEN 16
+#define MAX_RECENT 32
 char cmdDevice[NAME_LEN];
 char cmdParameter[NAME_LEN];
 int cmdRepeat, cmdWait = 0, cmdBitCount;
+char recentCmds[MAX_RECENT][NAME_LEN];
+int recentIndex;
 
 ESP8266WebServer server(AP_PORT);
 ESP8266HTTPUpdateServer httpUpdater;
@@ -85,9 +97,14 @@ const char mainPage[] =
 */
 void setup() {
 	Serial.begin(115200);
-	Serial.println("Set up IRBlaster Web");
+#ifdef WM_NAME
+	Serial.println("Set up managed IRBlaster Web");
+	WiFiManager wifiManager;
+	wifiManager.autoConnect(WM_NAME, WM_PASSWORD);
+#else
+	Serial.println("Set up manual IRBlaster Web");
 	wifiConnect();
-	
+#endif
 	//Update service
 	Serial.println("Set up Web update service");
 	MDNS.begin(host.c_str());
@@ -99,6 +116,7 @@ void setup() {
 	server.on("/ir", processIr);
 	server.on("/macro", saveMacro);
 	server.on("/check", checkStatus);
+	server.on("/recent", recentCommands);
 	server.on("/", indexHTML);
 	server.begin();
 	Serial.println("Set up IR sender");
@@ -273,6 +291,8 @@ int processIrCommand() {
 	int pulseCount = 0, deviceIx;
 	int ret = 0;
 	
+	addRecentCmd(cmdDevice);
+	addRecentCmd(cmdParameter);
 	if(cmdRepeat == 0) cmdRepeat = 1;
 	if(strcmpi(cmdDevice, "null") == 0) {
 		Serial.println("Null command");
@@ -348,6 +368,34 @@ void checkStatus() {
 	
     server.send(200, "text/html", response);
 }
+
+/*
+ log recent commands
+*/
+void addRecentCmd(char* recentCmd) {
+	strcpy(recentCmds[recentIndex], recentCmd);
+	recentIndex++;
+	if(recentIndex >= MAX_RECENT) recentIndex = 0;
+}
+
+/*
+ return recent commands
+*/
+void recentCommands() {
+	String response = "Recent commands<BR>";
+	
+	Serial.println("recent commands request received");
+	int recent = recentIndex;
+	for(int i = 0;i<MAX_RECENT;i++) {
+		if(strlen(recentCmds[recent]) > 0) {
+			response = response + recentCmds[recent] +"<BR>";
+		}
+		recent++;
+		if(recent >= MAX_RECENT) recent = 0;
+	}
+    server.send(200, "text/html", response);
+}
+
 
 /*
  Send code to IR driver

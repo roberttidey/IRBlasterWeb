@@ -7,6 +7,8 @@ Normal use is via POST messages. ip/irjson
 Status check at ip/check (also returns list of macros)
 Update OTA to new binary firmare at ip/firmware
 Macro facility using files stored on SPIFFS
+Log recent commands ip/recent
+Incorporates WifiManager library for initial wifi set up
 
 Command arguments
   auth (pincode or password to match built in value)
@@ -75,10 +77,15 @@ Existing macros can be removed by using the same procedure but with no commands 
 
 Config
   Edit IRBlasterWeb.ino
-    AP_SSID Local network ssid
-	AP_PASSWORD 
-	AP_PORT
-	AP_IP If static IP to be used
+	Manual Wifi set up (Comment out WM_NAME)
+      AP_SSID Local network ssid
+	  AP_PASSWORD 
+	  AP_IP If static IP to be used
+	Wifi Manager set up
+	  WM_NAME (ssid of wifi manager network)
+	  WM_PASSWORD (password to connect)
+	  Connect to WM_NAME and browse to 192.168.4.1 and set up
+	AP_PORT to access ir blaster web service
 	AP_AUTHID Pincode or password to authorise web commands
 	update_username user for updating firmware
 	update_password
@@ -106,6 +113,12 @@ Libraries
   BitMessages Routines to look up and create pulse sequences for a commands
   BitTx Bit bang routines to execute a pulse sequence
     Interrupt driven and supports accurate modulation
+  WifiManager
+  FS
+  DNSServer
+  ArduinoJson
+  ESP8266mDNS
+  ESP8266HTTPUpdateServer
 	
 Install procedure
 	Normal arduino esp8266 compile and upload
