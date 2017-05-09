@@ -368,7 +368,7 @@ Serial.println("Main page requested");
  Check status command received from web
 */
 void checkStatus() {
-	String response = "IR Blaster is running<BR>Macros<BR>";
+	String response = "IR Blaster is running<BR>";
 	Serial.println("Check status received");
 	if (alexaPin >= 0) {
 		if(alexaState == 1)
@@ -376,6 +376,7 @@ void checkStatus() {
 		else
 			response += "Alexa active<BR>";
 	}
+	response += "Macros<BR>";
 	
 	Dir dir = SPIFFS.openDir("/");
 	while (dir.next()) {
