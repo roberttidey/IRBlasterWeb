@@ -60,6 +60,8 @@ char cmdParameter[NAME_LEN];
 int cmdRepeat, cmdWait = 0, cmdBitCount;
 char recentCmds[MAX_RECENT][NAME_LEN];
 int recentIndex;
+int alexaState = 1; //0 = alexaOn
+int alexaPin = 13; // Set to -1 to disable alexa activate processing
 
 ESP8266WebServer server(AP_PORT);
 ESP8266HTTPUpdateServer httpUpdater;
@@ -103,6 +105,7 @@ void setup() {
 	wifiManager.autoConnect(WM_NAME, WM_PASSWORD);
 #else
 	Serial.println("Set up manual IRBlaster Web");
+	pinMode(alexaPin, INPUT_PULLUP);
 	wifiConnect();
 #endif
 	//Update service
@@ -283,6 +286,29 @@ int processJsonCommands(JsonArray& jsData) {
 	return 0; //success
 }
 
+/*
+ Process macro command
+*/
+int processMacroCommand(String macroName) {
+	File f = SPIFFS.open("/" + macroName, "r");
+	if(f) {
+		Serial.printf("Executing macro %s\r\n", macroName.c_str());
+		String json = f.readStringUntil(char(0));
+		f.close();
+		if(json.length()>2) {
+			DynamicJsonBuffer jsonBuf;
+			JsonArray& jsCommands = jsonBuf.parseArray(json);
+			return processJsonCommands(jsCommands);
+		} else {
+			Serial.printf("Macro %s too short\r\n", macroName.c_str());
+			return 1;
+		}
+	} else {
+		Serial.printf("Macro %s not found\r\n", macroName.c_str());
+		return 1;
+	}
+}
+
 
 /*
  Process single IR command
@@ -298,23 +324,7 @@ int processIrCommand() {
 		Serial.println("Null command");
 		ret = 0;
 	} else if(strcmpi(cmdDevice, "macro") == 0) {
-		File f = SPIFFS.open("/" + String(cmdParameter), "r");
-		if(f) {
-			Serial.printf("Executing macro %s\r\n", cmdParameter);
-			String json = f.readStringUntil(char(0));
-			f.close();
-			if(json.length()>2) {
-				DynamicJsonBuffer jsonBuf;
-				JsonArray& jsCommands = jsonBuf.parseArray(json);
-				ret = processJsonCommands(jsCommands);
-			} else {
-				Serial.printf("Macro %s too short\r\n", cmdParameter);
-				ret = 1;
-			}
-		} else {
-			Serial.printf("Macro %s not found\r\n", cmdParameter);
-			ret = 1;
-		}
+		ret = processMacroCommand(String(cmdParameter));
 	} else {
 		deviceIx = bitMessages_getDevice(cmdDevice);
 		if(deviceIx >= 0) {
@@ -359,8 +369,14 @@ Serial.println("Main page requested");
 */
 void checkStatus() {
 	String response = "IR Blaster is running<BR>Macros<BR>";
-	
 	Serial.println("Check status received");
+	if (alexaPin >= 0) {
+		if(alexaState == 1)
+			response += "Alexa inactive<BR>";
+		else
+			response += "Alexa active<BR>";
+	}
+	
 	Dir dir = SPIFFS.openDir("/");
 	while (dir.next()) {
 		response += dir.fileName() + " - " + dir.fileSize() + "<BR>";
@@ -396,6 +412,33 @@ void recentCommands() {
     server.send(200, "text/html", response);
 }
 
+/*
+ Check for Alexa activate on/off
+*/
+void checkAlexa() {
+	int aState = digitalRead(alexaPin);
+	if(aState != alexaState) {
+		alexaState = aState;
+		if(alexaState == 0)
+			alexaOn();
+		else
+			alexaOff();
+	}
+}
+
+/*
+ Handle Alexa activate turning on
+*/
+void alexaOn() {
+	processMacroCommand("alexaon");
+}
+
+/*
+ Handle Alexa activate  turning off
+*/
+void alexaOff() {
+	processMacroCommand("alexaoff");
+}
 
 /*
  Send code to IR driver
@@ -409,5 +452,6 @@ void sendMsg(int count, int repeat) {
 
 void loop() {
 	server.handleClient();
+	if (alexaPin >= 0) checkAlexa();
 	delay(10);
 }

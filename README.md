@@ -9,6 +9,7 @@ Update OTA to new binary firmare at ip/firmware
 Macro facility using files stored on SPIFFS
 Log recent commands ip/recent
 Incorporates WifiManager library for initial wifi set up
+Supports an Amazon Echo/Dot activate detector to mute / quieten as soon as activate word is spoken.
 
 Command arguments
   auth (pincode or password to match built in value)
@@ -140,6 +141,11 @@ Triggering from Alexa / IFTTT
     http://yourExtIP:port?plain={"auth":"1234","commands":[{"device":"macro","parameter":"TVOn","wait":"1000"}]}
     Note that this needs to be in the IFTTT URL, putting the POST in the body in IFTTT does not seem to work
   Create and save the macro with same name (TVOn) in the IRBlaster to support the request
+  
+Alexa activate detector
+  An input pin can be used to interface to an Alexa activate detector. This uses a light dependent resistor to detect when the LED rings on
+  the Dot light up. This can be used to send out ir commands locally to mute the sound and make the recognition of the Alexa command more reliable.
+  When detected the software tries to run an alexaon or alexaoff macro. See http://www.thingiverse.com/thing:2305400
 	
   
 	
