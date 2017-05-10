@@ -13,8 +13,16 @@ Supports an Amazon Echo/Dot activate detector to mute / quieten as soon as activ
 
 Command arguments
   auth (pincode or password to match built in value)
-  device (name of remote control, use 'null' if just wait required, use 'macro' to use a macro from SPIFFS)
+  device
+      name of remote control,
+	  'null' if just wait required,
+	  'macro' to use a macro from SPIFFS
+	  'detect' to turn alexa detect on / off
   parameter
+      button name on remote control,
+	  macro name,
+	  0/1 for detect on off
+      
   repeat (number of times to send ir code)
   wait (mSec delay after sending code)
   bits 0 for default, non zero overrides device definition
@@ -146,6 +154,9 @@ Alexa activate detector
   An input pin can be used to interface to an Alexa activate detector. This uses a light dependent resistor to detect when the LED rings on
   the Dot light up. This can be used to send out ir commands locally to mute the sound and make the recognition of the Alexa command more reliable.
   When detected the software tries to run an alexaon or alexaoff macro. See http://www.thingiverse.com/thing:2305400
+  The detect command can be useful to turn this on and off. E.g. only turn it on when using a macro to turn all equipment on and disable it
+  when turning equipment off. Also can be used in handling mute on and off. E.g. turning detect off leaves it in a muted state. Similarly turning it on can
+  be used to re-enable sound.
 	
   
 	

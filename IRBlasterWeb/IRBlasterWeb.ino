@@ -62,6 +62,7 @@ char recentCmds[MAX_RECENT][NAME_LEN];
 int recentIndex;
 int alexaState = 1; //0 = alexaOn
 int alexaPin = 13; // Set to -1 to disable alexa activate processing
+int alexaDetect = 0; //Set to 1 to activate Alexa detect handling
 
 ESP8266WebServer server(AP_PORT);
 ESP8266HTTPUpdateServer httpUpdater;
@@ -105,7 +106,6 @@ void setup() {
 	wifiManager.autoConnect(WM_NAME, WM_PASSWORD);
 #else
 	Serial.println("Set up manual IRBlaster Web");
-	pinMode(alexaPin, INPUT_PULLUP);
 	wifiConnect();
 #endif
 	//Update service
@@ -126,6 +126,9 @@ void setup() {
 	bitTx_init(irPin, irFrequency, IR_TIMER);
 	Serial.println("Set up filing system");
 	initFS();
+	if(alexaPin >=0) {
+		pinMode(alexaPin, INPUT_PULLUP);
+	}
 	
 	Serial.println("Set up complete");
 }
@@ -309,7 +312,6 @@ int processMacroCommand(String macroName) {
 	}
 }
 
-
 /*
  Process single IR command
 */
@@ -322,6 +324,10 @@ int processIrCommand() {
 	if(cmdRepeat == 0) cmdRepeat = 1;
 	if(strcmpi(cmdDevice, "null") == 0) {
 		Serial.println("Null command");
+		ret = 0;
+	} else if(strcmpi(cmdDevice, "detect") == 0) {
+		Serial.printf("Detect command %s\r\n",cmdParameter);
+		alexaDetect = atoi(cmdParameter);
 		ret = 0;
 	} else if(strcmpi(cmdDevice, "macro") == 0) {
 		ret = processMacroCommand(String(cmdParameter));
@@ -371,12 +377,17 @@ void checkStatus() {
 	String response = "IR Blaster is running<BR>";
 	Serial.println("Check status received");
 	if (alexaPin >= 0) {
-		if(alexaState == 1)
-			response += "Alexa inactive<BR>";
+		response += "Alexa: Detect ";
+		if(alexaDetect == 1)
+			response += "On ";
 		else
-			response += "Alexa active<BR>";
+			response += "Off ";
+		if(alexaState == 1)
+			response += "inactive";
+		else
+			response += "active";
 	}
-	response += "Macros<BR>";
+	response += "<BR>Macros<BR>";
 	
 	Dir dir = SPIFFS.openDir("/");
 	while (dir.next()) {
@@ -418,13 +429,13 @@ void recentCommands() {
 */
 void checkAlexa() {
 	int aState = digitalRead(alexaPin);
-	if(aState != alexaState) {
-		alexaState = aState;
-		if(alexaState == 0)
+	if(aState != alexaState && alexaDetect != 0) {
+		if(aState == 0)
 			alexaOn();
 		else
 			alexaOff();
 	}
+	alexaState = aState;
 }
 
 /*
