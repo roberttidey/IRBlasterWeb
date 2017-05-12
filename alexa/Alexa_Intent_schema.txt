@@ -1,0 +1,14 @@
+{
+  "intents": [
+    {
+      "intent": "RemoteBlasterIntent",
+      "slots": [
+        {
+          "name": "BlasterAction",
+          "type": "BLASTER_EFFECT"
+        }
+      ]
+    }
+  
+  ]
+}
