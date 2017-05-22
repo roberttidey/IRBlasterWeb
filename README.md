@@ -137,8 +137,10 @@ Install procedure
 Tool for gathering codes from a remote
   This is a simple python program (rxir.py) expected to run on a Raspberry Pi and using a demodulated IR receiver connected to a GPIO.
   Create a text file with a list of button names (broken into subsets for convenience). These files are named device-subset. When
-  run it will prompt for device,subset and coding type (nec,rc5,rc6). The user is then asked to press the buttons. 
-  The codes are then appended to a file called device.ircodes.
+  run it will prompt for device,subset,coding type (nec,rc5,rc6) and whether to check(y/n). The user is then asked to press the buttons. 
+  The codes are then appended to a file called device.ircodes. If check is y then it will try to verify code looks sensible and will retry if required.
+  Note that the program assumes the GPIO is low when IR is off. I use a simple 1 transistor buffer between the sensor to convert to 3.3V
+  which inverts the signal from the sensor (active low). If no inversion is used then modify the defintions at line 26-27
   
 Triggering from Alexa / IFTTT
   Set up Router to port forward external requests to IRBlaster device. Use a dns service if possible to give router external IP a name

@@ -27,7 +27,7 @@ RX_DATA_OFF = GPIO.LOW
 RX_DATA_ON = GPIO.HIGH
 
 #routines to decode an nec type ir code
-def get_nec(header1=9000, header2=5000, maxlow=800, maxhigh=2000, endgap=3000):
+def get_nec(header1=9000, header2=5000, maxlow=800, maxhigh=2000, endgap=3000, check=True):
 	code = ''
 	codehex=''
 	startfound = False
@@ -75,15 +75,19 @@ def get_nec(header1=9000, header2=5000, maxlow=800, maxhigh=2000, endgap=3000):
 					nibblevalue = 0
 			elif pin == RX_DATA_ON and pulse > maxlow and pulse < maxhigh:
 				code = code + '2'
+				if check:
+					return 'Bad data pulse', False
 			elif pulse < endgap:
 				pass
 			else:
-				return codehex + ',' + code
-		return 'Timeout'
+				if check and len(code) != 32:
+					return 'Bad code length' + codehex + ',' + code, False
+				return codehex + ',' + code, True
+		return 'Timeout', False
 	else:
-		return 'Bad start pulse ' + str(start1) + ' ' + str(start2)
+		return 'Bad start pulse ' + str(start1) + ' ' + str(start2), False
 
-def get_rc5(midpulse=1200, endgap=3000):
+def get_rc5(midpulse=1200, endgap=3000, check=True):
 	code = ''
 	codehex=''
 	state = 1
@@ -122,7 +126,7 @@ def get_rc5(midpulse=1200, endgap=3000):
 				emit = '0'
 				state = 2
 			else:
-				return code + 'bad level:event:state:time ' + str(event) + str(level) + ':' + str(state) + ':' + str(td)
+				return code + 'bad level:event:state:time ' + str(event) + str(level) + ':' + str(state) + ':' + str(td), False
 			if emit != '':
 				code = code + emit
 				if emit == '1':
@@ -136,7 +140,9 @@ def get_rc5(midpulse=1200, endgap=3000):
 			incode = False
 	if bitvalue != 8:
 		codehex = codehex + format(nibblevalue,'01X')
-	return codehex + ',' + code
+	if check and len(code) != 13:
+		return 'Bad code length', False
+	return codehex + ',' + code, True
 
 def find_rc6header(leader=2200, pulse=450):
 	starttries = 0
@@ -167,11 +173,11 @@ def find_rc6header(leader=2200, pulse=450):
 			starttries = starttries + 1
 	return 'No header ' + str(pulse0) + ' ' + str(pulse1) + ' ' + str(pulse2)
 	
-def get_rc6(leader=2200, pulse=450, endgap=3000):
+def get_rc6(leader=2200, pulse=450, endgap=3000, check=True):
 	midpulse = 1.42 * pulse
 	header = find_rc6header(leader, pulse)
 	if header != "":
-		return header
+		return header, False
 	code = ''
 	codehex=''
 	state = 1
@@ -213,7 +219,7 @@ def get_rc6(leader=2200, pulse=450, endgap=3000):
 				emit = '0'
 				state = 2
 			else:
-				return code + 'bad level:event:state:time ' + str(event) + str(level) + ':' + str(state) + ':' + str(td)
+				return code + 'bad level:event:state:time ' + str(event) + str(level) + ':' + str(state) + ':' + str(td), False
 			if emit != '':
 				bitcount = bitcount + 1
 				code = code + emit
@@ -228,19 +234,21 @@ def get_rc6(leader=2200, pulse=450, endgap=3000):
 			incode = False
 	if bitvalue != 8:
 		codehex = codehex + format(nibblevalue,'01X')
+	if check and len(code) != 13:
+		return 'Bad code length', False
 	return codehex + ',' + code
 
-def get_ir(codetype):
+def get_ir(codetype, chk):
 	if codetype == 'nec':
-		return get_nec()
+		return get_nec(check=chk)
 	elif codetype == 'nec1':
-		return get_nec(4500)
+		return get_nec(header1=4500, check=chk)
 	elif codetype == 'rc5':
-		return get_rc5()
+		return get_rc5(check=chk)
 	elif codetype == 'rc6':
-		return get_rc6()
+		return get_rc6(check=chk)
 	else:
-		return 'unknown'
+		return 'unknown', False
 
 def waitForQuiet(period=1):
 	quiet = False
@@ -259,16 +267,26 @@ GPIO.setup(GPIO_RXDATA,GPIO.IN)  #
 remotename = raw_input('name of remote control :')
 buttons = raw_input('name of subset buttons :')
 codetype = raw_input('codetype (nec,nec1,rc5,rc6) :')
+check = raw_input('retry on bad code (y/n) :')
 with open(remotename + '-' + buttons) as f:
     clines = f.read().splitlines() 
-codefile = open(remotename + CODE_EXT,"a")
+codefile = open(remotename + CODE_EXT, "a")
 codefile.write('IR codes for ' + remotename + '-' + buttons + '\n')
 
 try:
 	for cline in clines:
-		waitForQuiet()
-		print "Press Remote button ",cline
-		codefile.write(cline + ',' + get_ir(codetype) + '\n')
+		retries = 4
+		while retries > 0:
+			print "Remote button ",cline," Waiting for quiet",
+			waitForQuiet()
+			print "Press Now ",cline
+			result = get_ir(codetype, check == 'y')
+			codefile.write(cline + ',' + result[0] + '\n')
+			if check != 'y' or result[1]:
+				retries = 0
+			else:
+				print "Error. Try again"
+				retries = retries - 1
 except KeyboardInterrupt:
 	pass
 	
