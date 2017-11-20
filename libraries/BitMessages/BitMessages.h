@@ -16,26 +16,39 @@
 #define SPECIAL_RC6 0x0001
 #define SPECIAL_TOGGLE 0x0002
 
+#define MAX_DEVICES 6
+#define MAX_FIELD_LENGTH 24
+#define MAX_BUTTONNAMES 160
+#define MAX_BUTTONNAME_LENGTH 16
+#define MAX_CODE_LENGTH 3000
+#define NULL_BUTTON 0xFFFF
+
 struct deviceData {
-	char* deviceName;
-	char* header;
-	char* trailer;
-	char* pulses0;
-	char* pulses1;
+	char deviceName[MAX_FIELD_LENGTH];
+	char header[MAX_FIELD_LENGTH];
+	char trailer[MAX_FIELD_LENGTH];
+	char pulses0[MAX_FIELD_LENGTH];
+	char pulses1[MAX_FIELD_LENGTH];
 	int frequency;
 	int special;
 	int repeatDelay; //mSec
 	int bitCount;
 	int minRepeat; //repeat 1 is send once
 	int toggle; // holds toggle state if used
-	char** buttons;
+	char necAddress[8]; // holds nec Address 
+	int spare1; // spare
+	short buttonIxs[MAX_BUTTONNAMES];
 };
+
+// Initialisation and load
+extern char* bitMessages_init();
+extern int bitMessages_loadDevice(int deviceIndex, char* filename);
 
 // make message pulse buffer routines
 extern int bitMessages_addPulses(uint16* msg, char* pulseString, int factor);
 extern int bitMessages_addDataPulses(uint16* msg, char* dataString, int bitCount, char* pulses0, char* pulses1, int special);
 extern int bitMessages_getDevice(char* deviceString);
-extern int bitMessages_getButton(int device, char* buttonString);
+extern int bitMessages_getButton(char* buttonString);
 extern int bitMessages_addDelay(uint16* msg, int delay);
 extern int bitMessages_makeMsg(uint16* msg, char* header, char* trailer, char* dataString, int bitCount, char* pulses0, char* pulses1, int special, int repeatDelay);
 extern int bitMessages_makeNamedMsg(uint16* msg, char* deviceString, char* buttonString, int repeat, int bits);

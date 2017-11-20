@@ -1,0 +1,25 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta name = "viewport" content = "width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0">
+<title>ESP8266 IR sender</title>
+<style>
+"body { background-color: #808080; font-family: Arial, Helvetica, Sans-Serif; Color: #000000; }"
+</style>
+</head>
+<body>
+<h1>IR Blaster</h1>
+<FORM action="/ir" method="post">
+<P>
+Command<br>
+<INPUT type="text" name="auth" value="">PinCode<BR>
+<INPUT type="text" name="device" value="yamahaAV">Device<BR>
+<INPUT type="text" name="parameter" value="play">Button<BR>
+<INPUT type="text" name="bits" value="0">BitCount (0 default)<BR>
+<INPUT type="text" name="repeat" value="1">Repeat<BR>
+<INPUT type="text" name="wait" value="100">Wait mSec<BR>
+<INPUT type="submit" value="Send">
+</P>
+</FORM>
+</body>
+</html>

@@ -2,7 +2,9 @@
 Infra Red remote control blaster using esp8266
 
 Transmits remote control codes freceived from Web.
-Built in simple web page mainly for testing. ip/ir
+Remote control set up is in SPIFFs files which allows new set ups without changing code
+Files can be updated and deleted and viewed via web page. ip/edit or ip/edit?file=filename to view
+Built in simple web page mainly for testing. ip
 Normal use is via POST messages. ip/irjson
 Status check at ip/check (also returns list of macros)
 Update OTA to new binary firmare at ip/firmware
@@ -11,7 +13,7 @@ Log recent commands ip/recent
 Incorporates WifiManager library for initial wifi set up
 Supports an Amazon Echo/Dot activate detector to mute / quieten as soon as activate word is spoken.
 
-Command arguments
+Command are sent to ip/ir with arguments
   auth (pincode or password to match built in value)
   device
       name of remote control,
@@ -99,25 +101,43 @@ Config
 	update_username user for updating firmware
 	update_password
 	
-Remote controls
-  These are defined in BitDevices.h in the BitMessages library
-  Currently 3 devices are fully defined (Yamaha AV Box, LGTV, YouView(BT) )
-  To add a new device
-    Increase NUMBER_DEVICES
-	Create an array of buttons and Hex codes for that button
-	Append 9 lines of new config data to devices e.g.
-      	"youview", //name of device
-	    "H9000,L4500", //header pulses
-	    NULL, //trailer pulses
-	    "H550,L550", // pulses for a data bit 0
-	    "H550,L1600", // pulses for a data bit 1
-		38000, //IR modulation frequency
-		0, //special handling 0=Normal, 1 = rc6 bit 3 handling
-	    100, //repeat gap mSec
-	    33, //bit count
-	    1, // minimum repeat
-	    youviewMsgs  // pointer to button array
-		
+Remote controls definitions
+  buttonnames is a file held in SPIFFs which just holds a list of global button names across all devices
+  Individual remote controls are defined in dev_devicename files (Up to 6 devices (can be changed)
+  To define a device (look at supplied examples)
+    Header section holding base parameters of the remote
+	Codes section consisting of lines of buttonname,hexcode
+		The header can define an optional nec address code which is pre-pended to hexcodes as needed
+
+Example device file
+	lgtv
+	#Header
+	H9000,L4500
+	#Trailer
+	NULL
+	#Pulses0
+	H550,L550
+	#Pulses1
+	H550,L1600
+	#frequency
+	38000
+	#special
+	0
+	#repeat gap mSec
+	100
+	#bitCount
+	33
+	#minimum repeat
+	1
+	#toggle
+	0
+	#necAddress
+	20DF
+	#spare1
+	-1
+	#CODES
+	ONOFF,10EF	
+	
 Libraries
   BitMessages Routines to look up and create pulse sequences for a commands
   BitTx Bit bang routines to execute a pulse sequence
@@ -133,6 +153,7 @@ Install procedure
 	Normal arduino esp8266 compile and upload
 	As SPIFFS is used then the memory should be prepared by installing and using the ESP8266 Sketch Data upload tool
 	This will upload the data folder as initial SPIFFS content
+	Once the data is uploaded once then the built in file uploader can be used to add other stuff.
 	
 Tool for gathering codes from a remote
   This is a simple python program (rxir.py) expected to run on a Raspberry Pi and using a demodulated IR receiver connected to a GPIO.
