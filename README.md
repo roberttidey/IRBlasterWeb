@@ -14,7 +14,7 @@
 - Incorporates WifiManager library for initial wifi set up
 - Supports an Amazon Echo/Dot activate detector to mute / quieten as soon as activate word is spoken.
 
-### Command are sent to ip/ir with arguments
+### Commands are sent to ip/ir with arguments
 - auth (pincode or password to match built in value)
 - device
 	- name of remote control,
@@ -126,6 +126,13 @@ Existing macros can be removed by using the same procedure but with no commands 
 	
 	- Codes section consisting of lines of buttonname,hexcode
 		- ONOFF,10EF	
+
+### Other web commands
+- /recent lists recent activity
+- /check basic status
+- /  loads a web form to send commands manually
+- /edit loads a web form to view file list and delete/ upload files
+- /edit?file=filename view contents of a specific file
 
 ### Libraries
 - BitMessages Routines to look up and create pulse sequences for a commands
