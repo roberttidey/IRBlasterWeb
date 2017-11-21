@@ -1,7 +1,7 @@
 # IRBlasterWeb
-##Infra Red remote control blaster using esp8266
+## Infra Red remote control blaster using esp8266
 
-###Features
+### Features
 - Transmits remote control codes freceived from Web.
 - Remote control set up is in SPIFFs files which allows new set ups without changing code
 - Files can be updated and deleted and viewed via web page. ip/edit or ip/edit?file=filename to view
@@ -14,7 +14,7 @@
 - Incorporates WifiManager library for initial wifi set up
 - Supports an Amazon Echo/Dot activate detector to mute / quieten as soon as activate word is spoken.
 
-###Command are sent to ip/ir with arguments
+### Command are sent to ip/ir with arguments
 - auth (pincode or password to match built in value)
 - device
 	- name of remote control,
@@ -90,7 +90,7 @@ Example
 
 Existing macros can be removed by using the same procedure but with no commands content.
 
-###Config
+### Config
 - Edit IRBlasterWeb.ino
 	- Manual Wifi set up (Comment out WM_NAME)
 		- AP_SSID Local network ssid
@@ -105,7 +105,7 @@ Existing macros can be removed by using the same procedure but with no commands 
 	- update_username user for updating firmware
 	- update_password
 	
-###Remote controls definitions
+### Remote controls definitions
 - buttonnames is a file held in SPIFFs which just holds a list of global button names across all devices
 - Individual remote controls are defined in dev_devicename files. Code allows for up to 6 devices but can be increased in bitMessages.h
 - To define a device create a dev_devicename file (look at supplied examples)
@@ -127,7 +127,7 @@ Existing macros can be removed by using the same procedure but with no commands 
 	- Codes section consisting of lines of buttonname,hexcode
 		- ONOFF,10EF	
 
-###Libraries
+### Libraries
 - BitMessages Routines to look up and create pulse sequences for a commands
 - BitTx Bit bang routines to execute a pulse sequence
 	- Interrupt driven and supports accurate modulation
@@ -138,12 +138,12 @@ Existing macros can be removed by using the same procedure but with no commands 
 - ESP8266mDNS
 - ESP8266HTTPUpdateServer
 	
-###Install procedure
+### Install procedure
 - Normal arduino esp8266 compile and upload
 - As SPIFFS is used then the memory should be prepared by installing and using the ESP8266 Sketch Data upload tool
 	-This will upload the data folder as initial SPIFFS content. Once the data is uploaded once then the built in file uploader can be used to add other stuff.
 	
-###Tool for gathering codes from a remote
+### Tool for gathering codes from a remote
 This is a simple python program (rxir.py) expected to run on a Raspberry Pi and using a demodulated IR receiver connected to a GPIO.
 
 Create a text file with a list of button names (broken into subsets for convenience). These files are named device-subset. When 
@@ -154,7 +154,7 @@ The codes are then appended to a file called device.ircodes. If check is y then 
 Note that the program assumes the GPIO is low when IR is off. I use a simple 1 transistor buffer between the sensor to convert to 3.3V 
 which inverts the signal from the sensor (active low). If no inversion is used then modify the defintions at line 26-27
   
-###Triggering from Alexa / IFTTT
+### Triggering from Alexa / IFTTT
 - Set up Router to port forward external requests to IRBlaster device. Use a dns service if possible to give router external IP a name
 - Register with IFTTT and set up Alexa service using your Amazon login
 - Create new Applet with Alexa as IF. Select trigger with phrase. Enter phrase to be the trigger, e.g tv on.
@@ -164,7 +164,7 @@ http://yourExtIP:port?plain={"auth":"1234","commands":[{"device":"macro","parame
 Note that this needs to be in the IFTTT URL, putting the POST in the body in IFTTT does not seem to work
 - Create and save the macro with same name (TVOn) in the IRBlaster to support the request
   
-###Alexa activate detector
+### Alexa activate detector
 - An input pin can be used to interface to an Alexa activate detector.
 - This uses a light dependent resistor to detect when the LED rings on the Dot light up.
 - This can be used to send out ir commands locally to mute the sound and make the recognition of the Alexa command more reliable.
