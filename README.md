@@ -128,11 +128,11 @@ Existing macros can be removed by using the same procedure but with no commands 
 		- ONOFF,10EF	
 
 ### Other web commands
-- /recent lists recent activity
-- /check basic status
-- /  loads a web form to send commands manually
-- /edit loads a web form to view file list and delete/ upload files
-- /edit?file=filename view contents of a specific file
+- /recent (lists recent activity)
+- /check (shows basic status)
+- /    (loads a web form to send commands manually)
+- /edit (loads a web form to view file list and delete/ upload files)
+- /edit?file=filename (view contents of a specific file)
 
 ### Libraries
 - BitMessages Routines to look up and create pulse sequences for a commands
