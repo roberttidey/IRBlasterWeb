@@ -417,7 +417,11 @@ int processJsonCommands(JsonArray& jsData) {
  Process macro command
 */
 int processMacroCommand(String macroName) {
-	File f = SPIFFS.open("/" + macroName, "r");
+	File f;
+	f = SPIFFS.open("/" + macroName + ".txt", "r");
+	if(!f) {
+		f = SPIFFS.open("/" + macroName, "r");
+	}
 	if(f) {
 		Serial.printf_P(PSTR("Executing macro %s\r\n"), macroName.c_str());
 		String json = f.readStringUntil(char(0));

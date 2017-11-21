@@ -22,6 +22,7 @@
 #define MAX_BUTTONNAME_LENGTH 16
 #define MAX_CODE_LENGTH 3000
 #define NULL_BUTTON 0xFFFF
+#define BUTTON_FILE "/buttonnames.txt"
 
 struct deviceData {
 	char deviceName[MAX_FIELD_LENGTH];

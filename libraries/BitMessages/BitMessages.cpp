@@ -276,7 +276,7 @@ char* bitMessages_init(){
 	number_devices = 0;
 	number_buttonNames = 0;
 	//load buttonnames
-	File f = SPIFFS.open("/buttonnames", "r");
+	File f = SPIFFS.open(BUTTON_FILE, "r");
 	while(f.available()) {
 		line =f.readStringUntil('\n');
 		if(line.length() > 0 && line.charAt(0) != '#') {
