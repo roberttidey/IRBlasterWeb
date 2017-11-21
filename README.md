@@ -133,6 +133,7 @@ Existing macros can be removed by using the same procedure but with no commands 
 - /    (loads a web form to send commands manually)
 - /edit (loads a web form to view file list and delete/ upload files)
 - /edit?file=filename (view contents of a specific file)
+- /reload (reloads buttonnames and device files. Use after changing any of these)
 
 ### Libraries
 - BitMessages Routines to look up and create pulse sequences for a commands
