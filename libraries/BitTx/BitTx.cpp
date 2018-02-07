@@ -1,11 +1,11 @@
-// VitTx.cpp
+// BitTx.cpp
 //
 // General purpose interrupt driven bit transmitter for ESP8266
 // Message buffer consists of 16 bit words.
 //	Bit 15 is level to write to pin
 //	Bits 14 - 0 is tick count to maintain this level befre next change
-//	Tick period is 3.6us
-//  Minimum period should be > 32 ticks 96uS 
+//	Tick period is 3.2us
+//  Minimum period should be > 32 ticks 100uS 
 //  Maximum period is 32767 * 3.2 = 104mSec if longer required use multiple periods
 // Allows ir carrirer modulation for 1 state (must use pin 2 or 14)
 // rates from 10 - 400KHz with good accuracy in typical ir rates (36000)

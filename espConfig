@@ -1,0 +1,11 @@
+#config data for esp temp sensors
+#Each sensor starts with its Mac address then lines with
+#hostname,serverMode,EIOT name,MQTTTOpic,checkInterval,forceUpdateInterval
+#Lounge
+600101234567
+esp8266-lounge
+1
+N1S0
+sensor/loungeT
+60
+300

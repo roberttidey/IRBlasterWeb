@@ -13,6 +13,7 @@
 - Log recent commands ip/recent
 - Incorporates WifiManager library for initial wifi set up
 - Supports an Amazon Echo/Dot activate detector to mute / quieten as soon as activate word is spoken.
+- includes temperature sensing and reporting to easyIOT (optional)
 
 ### Commands are sent to ip/ir with arguments
 - auth (pincode or password to match built in value)
@@ -108,7 +109,7 @@ Existing macros can be removed by using the same procedure but with no commands 
 ### Remote controls definitions
 - buttonnames.txt is a file held in SPIFFs which just holds a list of global button names across all devices
 - Individual remote controls are defined in dev_devicename files. Code allows for up to 6 devices but can be increased in bitMessages.h
-- To define a device create a dev_devicename file (look at supplied examples)
+- To define a device create a dev_devicename.txt file (look at supplied examples)
     - Config section holding base parameters of the remote
 		- devicename e.g. lgtv 
 		- H9000,L4500 pulse sequence at the start of each message
@@ -128,6 +129,7 @@ Existing macros can be removed by using the same procedure but with no commands 
 		- ONOFF,10EF	
 
 ### Other web commands
+- /upload (simple one file uploader)
 - /recent (lists recent activity)
 - /check (shows basic status)
 - /    (loads a web form to send commands manually)
@@ -145,11 +147,22 @@ Existing macros can be removed by using the same procedure but with no commands 
 - ArduinoJson
 - ESP8266mDNS
 - ESP8266HTTPUpdateServer
-	
+- OneWire.h
+- DallasTemperature.h
+
+### Temperature sensing
+If TEMPERATURE is defined to be 1 at the top of the sketch then temperature sensing is activated.
+A config file espConfig is downloaded from a web host which contains some config data 
+as described in the example file. The address of the EIOT server and its password need to be set up in the sketch.
+
 ### Install procedure
 - Normal arduino esp8266 compile and upload
-- As SPIFFS is used then the memory should be prepared by installing and using the ESP8266 Sketch Data upload tool
-	-This will upload the data folder as initial SPIFFS content. Once the data is uploaded once then the built in file uploader can be used to add other stuff.
+- A simple built in file uploader (/upload) should then be used to upload the 4 base files to SPIFF
+  edit.htm.gz
+  index.html
+  favicon.ico
+  graphs.js.gz
+- The /edit operation is then supported to upload further blaster definition files
 	
 ### Tool for gathering codes from a remote
 This is a simple python program (rxir.py) expected to run on a Raspberry Pi and using a demodulated IR receiver connected to a GPIO.
