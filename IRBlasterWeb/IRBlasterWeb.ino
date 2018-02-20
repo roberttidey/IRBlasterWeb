@@ -5,7 +5,7 @@
  Supports Alexa pin input for muting
  Supports temperature reporting
 */
-#define TEMERATURE 0
+#define TEMPERATURE 0
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
@@ -207,7 +207,7 @@ int wifiConnect(int check) {
 	WiFi.begin(AP_SSID, AP_PASSWORD);
 	while (WiFi.status() != WL_CONNECTED && retries < AP_MAX_WAIT) {
 		delaymSec(1000);
-		Serial.print(F(("."));
+		Serial.print(F("."));
 		retries++;
 	}
 	Serial.println("");
