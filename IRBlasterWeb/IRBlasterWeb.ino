@@ -189,6 +189,9 @@ int wifiConnect(int check) {
 	Serial.println(F("Set up managed IRBlaster Web"));
 	if(check == 0) {
 		wifiManager.setConfigPortalTimeout(180);
+		#ifdef AP_IP
+			wifiManager.setSTAStaticIPConfig(IPAddress(AP_IP), IPAddress(AP_GATEWAY), IPAddress(AP_SUBNET));
+		#endif
 		if(!wifiManager.autoConnect(WM_NAME, WM_PASSWORD)) WiFi.mode(WIFI_STA);
 	} else {
 		WiFi.begin();
