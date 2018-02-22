@@ -26,7 +26,90 @@ GPIO_RXDATA = 24
 RX_DATA_OFF = GPIO.LOW
 RX_DATA_ON = GPIO.HIGH
 
-#routines to decode an nec type ir code
+#routine to decode a sirc SONY type ir codes
+# 12-bit version, 7 command bits, 5 address bits.
+# 15-bit version, 7 command bits, 8 address bits.
+# 20-bit version, 7 command bits, 5 address bits, 8 extended bits.
+#	DATA bits, LSB to MSB order
+#lirc (SONY_RM-AAU014):
+#  bits           15
+#  header       2486   498
+#  one          1291   502
+#  zero          693   502
+#  gap          40006
+#  min_repeat      1
+#  toggle_bit_mask 0x0
+
+# T = 	600us
+# Start H4T, L1T
+# 0: 	H1T, L1T
+# 1: 	H2T, L1T
+def get_sirc( header1=2400, header2=600,  maxlow=800, maxhigh=1400, endgap=3000, check=True):
+# header1: 	exact start bit HIGH
+# header2: 	exact start bit LOW
+# maxlow: 	data bit maximum HIGH in case of bit 0, with some spare(200)
+# maxhigh:	data bit maximum HIGH (1200), with some spare(200), bit 1 upper limit
+# endgap:	minimum LOW at the end
+	code = ''
+	codehex=''
+	startfound = False
+	starttries = 0
+	header1min = 0.8 * header1	# start bit HIGH min
+	header1max = 1.2 * header1	# start bit HIGH max
+	header2min = 0.8 * header2	# start bit LOW min
+	header2max = 1.2 * header2	# start bit LOW max
+	while not startfound and starttries < 10:
+		while GPIO.input(GPIO_RXDATA) == RX_DATA_OFF:
+			pass
+		t0 = time.time()
+		while GPIO.input(GPIO_RXDATA) == RX_DATA_ON:
+			pass
+		t1 = time.time()	# 
+		while GPIO.input(GPIO_RXDATA) == RX_DATA_OFF:
+			pass
+		t2 = time.time()
+		start1 = (t1-t0) * 1000000	# HIGH
+		start2 = (t2-t1) * 1000000	# LOW
+		if start1 > header1min and start1 < header1max and start2 > header2min and start2 < header2max:
+			startfound = True
+		else:
+			starttries = starttries + 1
+	if startfound:
+		t2 = time.time()
+		bitvalue = 8
+		nibblevalue = 0
+		while time.time() - t2 < 5:
+			t0 = time.time()
+			pin = GPIO.input(GPIO_RXDATA)
+			while GPIO.input(GPIO_RXDATA) == pin and (t0 - t2) < 1:
+				pass
+			pulse = (time.time() - t0) * 1000000	# length of 1. bit HIGH (from HIGH to LOW)
+			if pin == RX_DATA_OFF and pulse < maxhigh:
+				if pulse < maxlow:
+					code = code + '0'
+				else:
+					code = code + '1'
+					nibblevalue = nibblevalue + bitvalue
+				bitvalue = bitvalue / 2
+				if bitvalue < 1:
+					codehex = codehex + format(nibblevalue,'01X')
+					bitvalue = 8
+					nibblevalue = 0
+			elif pin == RX_DATA_ON and pulse > maxlow and pulse < maxhigh:	# period is in between, can't decide, error
+				code = code + '2'
+				if check:
+					return 'Bad data pulse', False
+			elif pulse < endgap:
+				pass
+			else:
+				if check and not ( len(code) == 12 or len(code) == 15 or len(code) == 20) :
+					return 'Bad code length' + codehex + ',' + code, False
+				return codehex + ',' + code, True
+		return 'Timeout', False
+	else:
+		return 'Bad start pulse ' + str(start1) + ' ' + str(start2), False
+		
+#routines to decode a NEC type ir code
 def get_nec(header1=9000, header2=5000, maxlow=800, maxhigh=2000, endgap=3000, check=True):
 	code = ''
 	codehex=''
@@ -247,6 +330,8 @@ def get_ir(codetype, chk):
 		return get_rc5(check=chk)
 	elif codetype == 'rc6':
 		return get_rc6(check=chk)
+	elif codetype == 'sirc':
+		return get_sirc(check=chk)
 	else:
 		return 'unknown', False
 
@@ -266,7 +351,7 @@ def waitForQuiet(period=1):
 GPIO.setup(GPIO_RXDATA,GPIO.IN)  #
 remotename = raw_input('name of remote control :')
 buttons = raw_input('name of subset buttons :')
-codetype = raw_input('codetype (nec,nec1,rc5,rc6) :')
+codetype = raw_input('codetype (nec,nec1,rc5,rc6,sirc) :')
 check = raw_input('retry on bad code (y/n) :')
 with open(remotename + '-' + buttons) as f:
     clines = f.read().splitlines() 
