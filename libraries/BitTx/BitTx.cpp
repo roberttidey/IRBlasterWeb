@@ -66,7 +66,7 @@ void ICACHE_RAM_ATTR bitTxIsr() {
 			tx_msg_active = 0;
 		} else {
 			tx_bufptr = tx_bufstart;
-			tx_bitCount = tx_bitCounter;
+			tx_bitCounter = tx_bitCount;
 		}
 	}
 	if(tx_msg_active) {

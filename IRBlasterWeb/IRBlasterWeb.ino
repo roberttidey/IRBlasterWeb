@@ -21,6 +21,9 @@
 #include <DNSServer.h>
 #include <WiFiManager.h>
 
+//put -1 s at end
+int unusedPins[11] = {0,2,4,5,12,14,15,16,-1,-1,-1};
+
 /*
  Manual Web set up
 */
@@ -165,6 +168,20 @@ void ICACHE_RAM_ATTR  delayuSec(unsigned long uSec) {
 	delayMicroseconds(us);
 	ESP.wdtFeed();
 	yield();
+}
+
+void unusedIO() {
+	int i;
+	
+	for(i=0;i<11;i++) {
+		if(unusedPins[i] < 0) {
+			break;
+		} else if(unusedPins[i] != 16) {
+			pinMode(unusedPins[i],INPUT_PULLUP);
+		} else {
+			pinMode(16,INPUT_PULLDOWN_16);
+		}
+	}
 }
 
 /*
@@ -860,6 +877,7 @@ void checkTemp() {
  Initialise wifi, message handlers and ir sender
 */
 void setup() {
+	unusedIO();
 	Serial.begin(115200);
 	char uname[USER_PWD_LEN];
 	String str = String(EIOT_USERNAME)+":"+String(EIOT_PASSWORD);  
