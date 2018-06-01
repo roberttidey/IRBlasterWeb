@@ -22,15 +22,69 @@ GPIO.setmode(GPIO.BCM)
 # Define GPIO to use on Pi
 GPIO_RXDATA = 24
 
-# reverse these to change sense of signal
+# reverse these to change sense of signal, Active LOW
 RX_DATA_OFF = GPIO.LOW
 RX_DATA_ON = GPIO.HIGH
+#RX_DATA_OFF = GPIO.HIGH
+#RX_DATA_ON = GPIO.LOW
 
-#routine to decode a sirc SONY type ir codes
+DUR = 10
+def get_raw( check=True):
+
+	print 'get-raw'
+	d = []
+	start_time = time.time()
+	pin = GPIO.input(GPIO_RXDATA)
+	print 'pin: ', pin
+	i = 0
+	t = start_time
+	while ( time.time() - start_time) < DUR :
+		while ( GPIO.input(GPIO_RXDATA) == pin ) and ( ( time.time() - start_time) < DUR ): 	# 
+			pass
+		t_last = t
+		t = time.time()
+		pin = GPIO.input(GPIO_RXDATA)
+		i = i + 1
+		a = int(round(1000000 * (t-t_last)))
+		if pin == RX_DATA_ON :
+			a = -1 * a
+		d.append(a)
+	j =0
+	i = i -1
+	print 'max:', i
+	while ( i >= j ) :
+		print d[j]
+		j = j+1
+	return 'Raw: ' + str(i), True
+		
+
+#def get_sirc( header1=2400, header2=600,  maxlow=800, maxhigh=1400, endgap=3000, check=True):
+def get_sirc( header1=2500, header2=500,  maxlow=750, maxhigh=1500, minendgap=11000, maxendgap=23000, check=True):
+
+#routine to decode sirc SONY type ir codes
 # 12-bit version, 7 command bits, 5 address bits.
 # 15-bit version, 7 command bits, 8 address bits.
 # 20-bit version, 7 command bits, 5 address bits, 8 extended bits.
 #	DATA bits, LSB to MSB order
+#
+# measured RM-AAP044 remote:
+# code lengths alternate 15/20
+# the gap varies, but total code length + gap = 41990
+#
+#  bits           19 +1 start bit
+#  header       2430   565
+#  one          1230   565
+#  zero          628   565
+#  gap          11380
+#
+#  bits			15+1 start bit
+#  header		2540	460
+#  one			1335	460
+#  zero			735		460
+#  gap			22055	
+#
+#
+#
 #lirc (SONY_RM-AAU014):
 #  bits           15
 #  header       2486   498
@@ -39,12 +93,14 @@ RX_DATA_ON = GPIO.HIGH
 #  gap          40006
 #  min_repeat      1
 #  toggle_bit_mask 0x0
-
+#
+# standard:
 # T = 	600us
 # Start H4T, L1T
 # 0: 	H1T, L1T
 # 1: 	H2T, L1T
-def get_sirc( header1=2400, header2=600,  maxlow=800, maxhigh=1400, endgap=3000, check=True):
+# 
+#
 # header1: 	exact start bit HIGH
 # header2: 	exact start bit LOW
 # maxlow: 	data bit maximum HIGH in case of bit 0, with some spare(200)
@@ -58,18 +114,19 @@ def get_sirc( header1=2400, header2=600,  maxlow=800, maxhigh=1400, endgap=3000,
 	header1max = 1.2 * header1	# start bit HIGH max
 	header2min = 0.8 * header2	# start bit LOW min
 	header2max = 1.2 * header2	# start bit LOW max
+	
 	while not startfound and starttries < 10:
-		while GPIO.input(GPIO_RXDATA) == RX_DATA_OFF:
+		while GPIO.input(GPIO_RXDATA) == RX_DATA_OFF:	# data LOW - no data
 			pass
 		t0 = time.time()
-		while GPIO.input(GPIO_RXDATA) == RX_DATA_ON:
+		while GPIO.input(GPIO_RXDATA) == RX_DATA_ON:	# data HIGH, Startbit 1. half
 			pass
 		t1 = time.time()	# 
-		while GPIO.input(GPIO_RXDATA) == RX_DATA_OFF:
+		while GPIO.input(GPIO_RXDATA) == RX_DATA_OFF:	# data LOW, startbit 2nd half
 			pass
 		t2 = time.time()
-		start1 = (t1-t0) * 1000000	# HIGH
-		start2 = (t2-t1) * 1000000	# LOW
+		start1 = (t1-t0) * 1000000	# data HIGH
+		start2 = (t2-t1) * 1000000	# data LOW
 		if start1 > header1min and start1 < header1max and start2 > header2min and start2 < header2max:
 			startfound = True
 		else:
@@ -80,32 +137,34 @@ def get_sirc( header1=2400, header2=600,  maxlow=800, maxhigh=1400, endgap=3000,
 		nibblevalue = 0
 		while time.time() - t2 < 5:
 			t0 = time.time()
-			pin = GPIO.input(GPIO_RXDATA)
-			while GPIO.input(GPIO_RXDATA) == pin and (t0 - t2) < 1:
+			pin = GPIO.input(GPIO_RXDATA)	# it should be data HIGH 1st time
+			while GPIO.input(GPIO_RXDATA) == pin and (t0 - t2) < 1:	# wait for data change
 				pass
-			pulse = (time.time() - t0) * 1000000	# length of 1. bit HIGH (from HIGH to LOW)
-			if pin == RX_DATA_OFF and pulse < maxhigh:
-				if pulse < maxlow:
+			pulse = (time.time() - t0) * 1000000	# length of 1. bit data HIGH (from HIGH to LOW) at 1st time
+			if pin == RX_DATA_ON and pulse < maxhigh:	# change from data HIGH to LOW
+				if pulse < maxlow:	# HIGH for 0
 					code = code + '0'
 				else:
-					code = code + '1'
+					code = code + '1'	# HIGH for 1
 					nibblevalue = nibblevalue + bitvalue
 				bitvalue = bitvalue / 2
 				if bitvalue < 1:
 					codehex = codehex + format(nibblevalue,'01X')
 					bitvalue = 8
 					nibblevalue = 0
-			elif pin == RX_DATA_ON and pulse > maxlow and pulse < maxhigh:	# period is in between, can't decide, error
+			elif pin == RX_DATA_OFF and pulse > maxlow and pulse < maxhigh:	# change from data LOW to HIGH
+																			# period is in between, can't decide, error
 				code = code + '2'
 				if check:
-					return 'Bad data pulse', False
-			elif pulse < endgap:
-				pass
-			else:
+					return 'Bad data pulse:'+ str(int(round(pulse))) + ' pin: ' + str(pin) + ' place: ' + str(i) +' code:' + code, False
+			elif pin == RX_DATA_OFF and pulse > minendgap and pulse < maxendgap:	# to cut the repetition, exit at gap
 				if check and not ( len(code) == 12 or len(code) == 15 or len(code) == 20) :
-					return 'Bad code length' + codehex + ',' + code, False
-				return codehex + ',' + code, True
-		return 'Timeout', False
+					return 'Bad code length:' + str(len(code)) + " " + codehex + ',' + code, False
+				if len(code)%4 != 0 :		# if code length is not dividable with 4, the last bits are lost
+					codehex = codehex + format(nibblevalue,'01X')
+				print 'Length:' + str(len(code)) + ' Code read: ' + codehex + ' , ' + code
+				return str(len(code)) + ',' + codehex + ',' + code, True
+		return 'Timeout, code length:' + str(len(code)) + " code:" + codehex + ',' + code, False
 	else:
 		return 'Bad start pulse ' + str(start1) + ' ' + str(start2), False
 		
@@ -332,6 +391,8 @@ def get_ir(codetype, chk):
 		return get_rc6(check=chk)
 	elif codetype == 'sirc':
 		return get_sirc(check=chk)
+	elif codetype == 'raw':
+		return get_raw(check=chk)
 	else:
 		return 'unknown', False
 
@@ -340,7 +401,7 @@ def waitForQuiet(period=1):
 	hightime = time.time()
 	while not quiet:
 		pin = GPIO.input(GPIO_RXDATA)
-		if pin == GPIO.LOW:
+		if pin == RX_DATA_OFF:
 			if time.time() - hightime > period:
 				quiet = True
 		else:
@@ -349,28 +410,29 @@ def waitForQuiet(period=1):
 # Main routine
 # Set pin for input
 GPIO.setup(GPIO_RXDATA,GPIO.IN)  #
-remotename = raw_input('name of remote control :')
-buttons = raw_input('name of subset buttons :')
-codetype = raw_input('codetype (nec,nec1,rc5,rc6,sirc) :')
-check = raw_input('retry on bad code (y/n) :')
+remotename = raw_input('Name of remote control :')
+buttons = raw_input('Name of subset buttons :')
+codetype = raw_input('Codetype (nec,nec1,rc5,rc6,sirc,raw) :')
+check = raw_input('Retry on bad code (y/n) :')
+
 with open(remotename + '-' + buttons) as f:
     clines = f.read().splitlines() 
 codefile = open(remotename + CODE_EXT, "a")
 codefile.write('IR codes for ' + remotename + '-' + buttons + '\n')
-
+print "codefile open"
 try:
 	for cline in clines:
 		retries = 4
+		print "cline: ",cline
 		while retries > 0:
-			print "Remote button ",cline," Waiting for quiet",
-			waitForQuiet()
+			print "Remote button ",cline," Waiting for quiet", waitForQuiet()
 			print "Press Now ",cline
 			result = get_ir(codetype, check == 'y')
 			codefile.write(cline + ',' + result[0] + '\n')
 			if check != 'y' or result[1]:
 				retries = 0
 			else:
-				print "Error. Try again"
+				print "Error. Try again", result[0],result[1]
 				retries = retries - 1
 except KeyboardInterrupt:
 	pass
