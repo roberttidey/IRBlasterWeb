@@ -7,7 +7,7 @@
 */
 #define TEMPERATURE 0
 #include <ESP8266WiFi.h>
-#include <WiFiClient.h>
+#include <ESP8266HTTPClient.h>
 #include <ESP8266WebServer.h>
 #include "BitMessages.h"
 #include "BitTx.h"
@@ -17,12 +17,19 @@
 #include "FS.h"
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include "Base64.h"
 #include <DNSServer.h>
 #include <WiFiManager.h>
 
 //put -1 s at end
 int unusedPins[11] = {0,2,4,5,12,14,15,16,-1,-1,-1};
+
+#define INIT_SKIP -1
+#define INIT_START 0
+#define INIT_DELAY 1
+#define INIT_OK1 2
+#define INIT_OK2 3
+#define INIT_RUN 4
+int blasterInit = INIT_START;
 
 /*
  Manual Web set up
@@ -30,7 +37,7 @@ int unusedPins[11] = {0,2,4,5,12,14,15,16,-1,-1,-1};
 #define AP_SSID "ssid"
 #define AP_PASSWORD "password"
 #define AP_MAX_WAIT 10
-#define AP_PORT 80
+#define AP_PORT 1234
 
 //uncomment next line to use static ip address instead of dhcp
 //#define AP_IP 192,168,0,200
@@ -65,7 +72,7 @@ int tempValid;
 int minMsgInterval = 10; // in units of 1 second
 int forceInterval = 300; // send message after this interval even if temp same 
 
-#define AP_AUTHID "2718"
+#define AP_AUTHID "1234"
 
 #define IR_TIMER 0
 int irPin = 14; // 2 or 14
@@ -102,10 +109,10 @@ ESP8266HTTPUpdateServer httpUpdater;
 //holds the current upload
 File fsUploadFile;
 
-WiFiClient cClient;
+HTTPClient cClient;
 
-//Config remote fetch from web page
-#define CONFIG_IP_ADDRESS  "192.168.0.7"
+//Config remote fetch from web page (include port in url if not 80)
+#define CONFIG_IP_ADDRESS  "http://192.168.0.250/espConfig"
 #define CONFIG_PORT        80
 //Comment out for no authorisation else uses same authorisation as EIOT server
 #define CONFIG_AUTH 1
@@ -115,10 +122,9 @@ WiFiClient cClient;
 // EasyIoT server definitions
 #define EIOT_USERNAME    "admin"
 #define EIOT_PASSWORD    "password"
-#define EIOT_IP_ADDRESS  "192.168.0.7"
+//EIOT report URL (include port in url if not 80)
+#define EIOT_IP_ADDRESS  "http://192.168.0.250/Api/EasyIoT/Control/Module/Virtual/"
 #define EIOT_PORT        80
-#define USER_PWD_LEN 40
-char unameenc[USER_PWD_LEN];
 String eiotNode = "-1";
 
 //general variables
@@ -184,6 +190,7 @@ void unusedIO() {
 	}
 }
 
+
 /*
   Connect to local wifi with retries
   If check is set then test the connection and re-establish if timed out
@@ -192,10 +199,10 @@ int wifiConnect(int check) {
 	if(check) {
 		if((elapsedTime - wifiCheckTime) * timeInterval > WIFI_CHECK_TIMEOUT) {
 			if(WiFi.status() != WL_CONNECTED) {
-				Serial.println(F("Wifi connection timed out. Try to relink"));
+				Serial.println("Wifi connection timed out. Try to relink");
 			} else {
 				wifiCheckTime = elapsedTime;
-				return 0;
+				return 1;
 			}
 		} else {
 			return 0;
@@ -204,15 +211,12 @@ int wifiConnect(int check) {
 	wifiCheckTime = elapsedTime;
 #ifdef WM_NAME
 	Serial.println(F("Set up managed IRBlaster Web"));
-	if(check == 0) {
-		wifiManager.setConfigPortalTimeout(180);
-		#ifdef AP_IP
-			wifiManager.setSTAStaticIPConfig(IPAddress(AP_IP), IPAddress(AP_GATEWAY), IPAddress(AP_SUBNET));
-		#endif
-		if(!wifiManager.autoConnect(WM_NAME, WM_PASSWORD)) WiFi.mode(WIFI_STA);
-	} else {
-		WiFi.begin();
-	}
+	wifiManager.setConfigPortalTimeout(180);
+	#ifdef AP_IP
+		wifiManager.setSTAStaticIPConfig(IPAddress(AP_IP), IPAddress(AP_GATEWAY), IPAddress(AP_SUBNET));
+	#endif
+	wifiManager.autoConnect(WM_NAME, WM_PASSWORD);
+	WiFi.mode(WIFI_STA);
 #else
 	Serial.println(F("Set up manual IRBlaster Web"));
 	int retries = 0;
@@ -248,64 +252,69 @@ int wifiConnect(int check) {
 */
 void getConfig() {
 	int responseOK = 0;
+	int httpCode;
+	int len;
 	int retries = CONFIG_RETRIES;
+	String url = String(CONFIG_IP_ADDRESS);
+	Serial.println("Config url - " + url);
 	String line = "";
 
 	while(retries > 0) {
-		clientConnect(CONFIG_IP_ADDRESS, CONFIG_PORT);
 		Serial.print("Try to GET config data from Server for: ");
 		Serial.println(macAddr);
-
-		cClient.print(String("GET /") + CONFIG_PAGE + " HTTP/1.1\r\n" +
-			"Host: " + String(CONFIG_IP_ADDRESS) + "\r\n" + 
 		#ifdef CONFIG_AUTH
-				"Authorization: Basic " + unameenc + " \r\n" + 
+			cClient.setAuthorization(EIOT_USERNAME, EIOT_PASSWORD);
+		#else
+			cClient.setAuthorization("");		
 		#endif
-			"Content-Length: 0\r\n" + 
-			"Connection: close\r\n" + 
-			"\r\n");
-		int config = 100;
-		int timeout = 0;
-		while (cClient.connected() && timeout < 10){
-			if (cClient.available()) {
-				timeout = 0;
-				line = cClient.readStringUntil('\n');
-				if(line.indexOf("HTTP") == 0 && line.indexOf("200 OK") > 0)
-					responseOK = 1;
-				//Don't bother processing when config complete
-				if (config >= 0) {
-					line.replace("\r","");
-					Serial.println(line);
-					//start reading config when mac address found
-					if (line == macAddr) {
-						config = 0;
-					} else {
-						if(line.charAt(0) != '#') {
-							switch(config) {
-								case 0: host = line;break;
-								case 1: serverMode = line.toInt();break;
-								case 2: eiotNode = line;break;
-								case 3: break; //spare
-								case 4: minMsgInterval = line.toInt();break;
-								case 5:
-									forceInterval = line.toInt();
-									Serial.println("Config fetched from server OK");
-									config = -100;
-									break;
+		cClient.begin(url);
+		httpCode = cClient.GET();
+		if (httpCode > 0) {
+			if (httpCode == HTTP_CODE_OK) {
+				responseOK = 1;
+				int config = 100;
+				len = cClient.getSize();
+				if (len < 0) len = -10000;
+				Serial.println("Response Size:" + String(len));
+				WiFiClient * stream = cClient.getStreamPtr();
+				while (cClient.connected() && (len > 0 || len <= -10000)) {
+					if(stream->available()) {
+						line = stream->readStringUntil('\n');
+						len -= (line.length() +1 );
+						//Don't bother processing when config complete
+						if (config >= 0) {
+							line.replace("\r","");
+							Serial.println(line);
+							//start reading config when mac address found
+							if (line == macAddr) {
+								config = 0;
+							} else {
+								if(line.charAt(0) != '#') {
+									switch(config) {
+										case 0: host = line;break;
+										case 1: serverMode = line.toInt();break;
+										case 2: eiotNode = line;break;
+										case 3: break; //spare
+										case 4: minMsgInterval = line.toInt();break;
+										case 5:
+											forceInterval = line.toInt();
+											Serial.println("Config fetched from server OK");
+											config = -100;
+									}
+									config++;
+								}
 							}
-							config++;
 						}
 					}
 				}
-			} else {
-				delaymSec(1000);
-				timeout++;
-				Serial.println("Wait for response");
 			}
+		} else {
+			Serial.printf("[HTTP] POST... failed, error: %s\n", cClient.errorToString(httpCode).c_str());
 		}
-		cClient.stop();
-		if(responseOK == 1)
+		cClient.end();
+		if(responseOK)
 			break;
+		Serial.println("Retrying get config");
 		retries--;
 	}
 	Serial.println();
@@ -332,7 +341,10 @@ void reloadConfig() {
 
 
 void initFS() {
-	SPIFFS.begin();
+	if(blasterInit == INIT_SKIP) {
+		//force a format
+		SPIFFS.format();
+	}
 	if(!SPIFFS.begin()) {
 		Serial.println(F("No SIFFS found. Format it"));
 		if(SPIFFS.format()) {
@@ -677,25 +689,26 @@ int processIrCommand() {
  Check status command received from web
 */
 void checkStatus() {
-	String response = "IR Blaster is running<BR>";
+	String response;
 	Serial.println(F("Check status received"));
+	response = "Init:" + String(blasterInit);
 	if (alexaPin >= 0) {
-		response += "Alexa: Detect ";
+		response += "<BR>Alexa:";
 		if(alexaDetect == 1)
-			response += "On ";
+			response += "On";
 		else
-			response += "Off ";
+			response += "Off";
 		if(alexaState == 1)
-			response += "inactive";
+			response += ":inactive";
 		else
-			response += "active";
+			response += ":active";
 	}
-	response += "<BR>Macros<BR>";
 	
 	Dir dir = SPIFFS.openDir("/");
 	while (dir.next()) {
-		response += dir.fileName() + " - " + dir.fileSize() + "<BR>";
+		response += "<BR>File:" + dir.fileName() + " - " + dir.fileSize();
 	}
+	response +="<BR>";
 	
     server.send(200, "text/html", response);
 }
@@ -776,26 +789,6 @@ void sendMsg(int count, int repeat) {
 }
 
 /*
-  Establish client connection
-*/
-void clientConnect(char* host, uint16_t port) {
-	int retries = 0;
-   
-	while(!cClient.connect(host, port)) {
-		Serial.print("?");
-		retries++;
-		if(retries > CONFIG_RETRIES) {
-			Serial.print("Client connection failed:" );
-			Serial.println(host);
-			wifiConnect(0); 
-			retries = 0;
-		} else {
-			delaymSec(5000);
-		}
-	}
-}
-
-/*
   Check if value changed enough to report
 */
 bool checkBound(float newValue, float prevValue, float maxDiff) {
@@ -810,37 +803,33 @@ bool checkBound(float newValue, float prevValue, float maxDiff) {
 void easyIOTReport(String node, float value, int digital) {
 	int retries = CONFIG_RETRIES;
 	int responseOK = 0;
-	String url = "/Api/EasyIoT/Control/Module/Virtual/" + node;
-	
+	int httpCode;
+	String url = String(EIOT_IP_ADDRESS) + node;
 	// generate EasIoT server node URL
 	if(digital == 1) {
 		if(value > 0)
 			url += "/ControlOn";
 		else
 			url += "/ControlOff";
-	} else
+	} else {
 		url += "/ControlLevel/" + String(value);
-
+	}
 	Serial.print("POST data to URL: ");
 	Serial.println(url);
 	while(retries > 0) {
-		clientConnect(EIOT_IP_ADDRESS, EIOT_PORT);
-		cClient.print(String("POST ") + url + " HTTP/1.1\r\n" +
-				"Host: " + String(EIOT_IP_ADDRESS) + "\r\n" + 
-				"Connection: close\r\n" + 
-				"Authorization: Basic " + unameenc + " \r\n" + 
-				"Content-Length: 0\r\n" + 
-				"\r\n");
-
-		delaymSec(100);
-		while(cClient.available()){
-			String line = cClient.readStringUntil('\r');
-			if(line)
-			Serial.print(line);
-			if(line.indexOf("HTTP") == 0 && line.indexOf("200 OK") > 0)
+		cClient.setAuthorization(EIOT_USERNAME, EIOT_PASSWORD);
+		cClient.begin(url);
+		httpCode = cClient.GET();
+		if (httpCode > 0) {
+			if (httpCode == HTTP_CODE_OK) {
+				String payload = cClient.getString();
+				Serial.println(payload);
 				responseOK = 1;
+			}
+		} else {
+			Serial.printf("[HTTP] POST... failed, error: %s\n", cClient.errorToString(httpCode).c_str());
 		}
-		cClient.stop();
+		cClient.end();
 		if(responseOK)
 			break;
 		else
@@ -879,11 +868,10 @@ void checkTemp() {
 void setup() {
 	unusedIO();
 	Serial.begin(115200);
-	char uname[USER_PWD_LEN];
-	String str = String(EIOT_USERNAME)+":"+String(EIOT_PASSWORD);  
-	str.toCharArray(uname, USER_PWD_LEN); 
-	memset(unameenc,0,sizeof(unameenc));
-	base64_encode(unameenc, uname, strlen(uname));
+	if(digitalRead(irPin) == 0 && digitalRead(alexaPin) == 0) {
+		blasterInit = INIT_SKIP;
+		Serial.println(F("Skip init bitTx and format SPIFFS"));
+	}
 	wifiConnect(0);
 	macAddr = WiFi.macAddress();
 	macAddr.replace(":","");
@@ -931,8 +919,11 @@ void setup() {
 	if(alexaPin >=0) {
 		pinMode(alexaPin, INPUT_PULLUP);
 	}
-	Serial.println(bitMessages_init());
-	Serial.println(F("Set up complete"));
+	if(blasterInit >= INIT_START) {
+		Serial.println(bitMessages_init());
+		Serial.println(F("Set up complete"));
+		blasterInit = INIT_RUN;
+	}
 }
 
 void loop() {
