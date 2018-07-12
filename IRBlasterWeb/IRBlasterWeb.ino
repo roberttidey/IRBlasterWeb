@@ -5,6 +5,8 @@
  Supports Alexa pin input for muting
  Supports temperature reporting
 */
+#define ESP8266
+
 #define TEMPERATURE 0
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
