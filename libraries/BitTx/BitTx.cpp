@@ -19,10 +19,10 @@
 #include <string.h>
 
 //Define macros for local use of On/Off 
-#define BANG_ON  ESP8266_REG(bangAddrOn) = bangDataOn; 
+#define BANG_ON  ESP8266_REG(bangAddrOn) = bangDataOn;
 #define BANG_OFF ESP8266_REG(bangAddrOff) = bangDataOff;
 
-//Base i2s word clock = 16,000,000 / 34
+//Base i2s word clock = 160,000,000 / 34
 #define BASE_I2S_WCLOCK 4705882.35
 
 static uint32_t bangAddrOn, bangAddrOff, bangDataOn, bangDataOff;
@@ -43,6 +43,7 @@ static int tx_bitCounter;
 static int tx_repeats = 12; // Number of repeats to send
 static int tx_repeat = 0; //counter for repeats
 static int txTimer = 0; // timer to use
+static int tx_bangMode = 0; //0= bitbang, 1= modulated
 
 static unsigned long espNext = 0; //Holds interrupt next count for timer0
 
@@ -94,7 +95,7 @@ void bitTx_send(uint16 *msg, int msglen, int repeats) {
   tx_bufstart = msg;
   tx_bufptr = msg;
   tx_bitCount = msglen;
-  tx_bitCounter = msglen;
+  tx_bitCounter = tx_bitCount;
   tx_repeats = repeats;
   tx_repeat = repeats;
   bitTx_start();
@@ -113,11 +114,13 @@ void bitTx_init(int pin, float rate, int esTimer) {
 	digitalWrite(txPin, 0);
 	pinMode(txPin, OUTPUT);
 	if (rate == 0) {
+		tx_bangMode = 0;
 		bangAddrOn = 0x304;
 		bangAddrOff = 0x308;
 		bangDataOn   = 1<<txPin;
 		bangDataOff = bangDataOn;
 	} else {
+		tx_bangMode = 1;
 		target = BASE_I2S_WCLOCK / rate;
 		diffMin = target;
 		for(i = 1; i < 64; i++) {
@@ -149,6 +152,8 @@ void bitTx_init(int pin, float rate, int esTimer) {
 }
 
 void bitTx_start() {
+	digitalWrite(txPin, 0);
+	pinMode(txPin, OUTPUT);
 	noInterrupts();
 	rom_i2c_writeReg_Mask(i2c_bbpll, i2c_bbpll_hostid, i2c_bbpll_en_audio_clock_out, i2c_bbpll_en_audio_clock_out_msb, i2c_bbpll_en_audio_clock_out_lsb, 1);
 	if(txTimer == 0) {
@@ -159,7 +164,7 @@ void bitTx_start() {
 	} else {
 		timer1_isr_init();
 		timer1_attachInterrupt(bitTxIsr);
-		timer1_enable(TIM_DIV265, TIM_EDGE, TIM_SINGLE);
+		timer1_enable(TIM_DIV256, TIM_EDGE, TIM_SINGLE);
 		timer1_write(1000);
 	}
 	interrupts();

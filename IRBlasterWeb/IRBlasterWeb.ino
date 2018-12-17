@@ -528,48 +528,46 @@ void processIr() {
 Process IR commands with json
 */
 void processIrjson() {
-	DynamicJsonBuffer jsonBuf;
+	DynamicJsonDocument doc;
 	Serial.println(F("Json command received"));
-/*
-	for(int i=0;i<server.args();i++) {
-		Serial.println(server.argName(i));
-		Serial.println(server.arg(i));
-	}
-*/
-	JsonObject& jsData = jsonBuf.parseObject(server.arg("plain"));
-	
-	if (!jsData.success()) {
+	DeserializationError error = deserializeJson(doc, server.arg("plain"));
+	if (error) {
 		Serial.println(F("JSON parsing failed"));
 		server.send(400, "text/html", "JSON parsing failed");
-	} else if (jsData.get<String>("auth") != AP_AUTHID) {
+		return;
+	}
+	JsonObject jsData = doc.as<JsonObject>();
+	if (jsData.get("auth").as<String>() != AP_AUTHID) {
 		Serial.println(F("Unauthorized"));
 		server.send(401, "text/html", "Unauthorized");
 	} else {
 		server.send(200, "text/html", "Valid JSON command being processed");
-		JsonArray& jsCommands = jsData.get<JsonVariant>("commands").as<JsonArray&>();
+		JsonArray jsCommands = jsData.get("commands").as<JsonArray>();
 		processJsonCommands(jsCommands);
 	}
 }
 
 void saveMacro() {
-	DynamicJsonBuffer jsonBuf;
-	JsonObject& jsData = jsonBuf.parseObject(server.arg("plain"));
+	DynamicJsonDocument doc;
+	Serial.println(F("save macro received"));
+	DeserializationError error = deserializeJson(doc, server.arg("plain"));
+	if (error) {
+		Serial.println(F("JSON parsing failed"));
+		server.send(400, "text/html", "JSON parsing failed");
+		return;
+	}
+	JsonObject jsData = doc.as<JsonObject>();
 	String macro;
 	String macroname;
 	String json;
 	int i;
-	
-	Serial.println(F("save macro received"));
-	if (!jsData.success()) {
-		Serial.println(F("JSON parsing failed"));
-		server.send(400, "text/html", "JSON parsing failed");
-	} else if (jsData.get<String>("auth") != AP_AUTHID) {
+	if (jsData.get("auth").as<String>() != AP_AUTHID) {
 		Serial.println(F("Unauthorized"));
 		server.send(401, "text/html", "Unauthorized");
 	} else {
-		macroname = jsData.get<String>("macro");
+		macroname = jsData.get("macro").as<String>();
 		if(macroname.length() > 0) {
-			json = jsData.get<String>("commands");
+			json = jsData.get("commands").as<String>();
 			if(json.length() > 0) {
 				File f = SPIFFS.open("/" + macroname + ".txt", "w");
 				f.print(json);
@@ -598,8 +596,8 @@ int processJsonCommands(JsonArray& jsData) {
 	
 	for (i = 0; i < jsData.size(); i++) {
 		cmdRepeat = 1;
-		strcpy(cmdDevice,jsData[i]["device"].asString());
-		strcpy(cmdParameter,jsData[i]["parameter"].asString());
+		strcpy(cmdDevice,jsData[i]["device"].as<const char*>());
+		strcpy(cmdParameter,jsData[i]["parameter"].as<const char*>());
 		cmdRepeat = jsData[i]["repeat"].as<int>();
 		cmdWait = jsData[i]["wait"].as<int>();
 		cmdBitCount = jsData[i]["bits"].as<int>();
@@ -624,8 +622,9 @@ int processMacroCommand(String macroName) {
 		String json = f.readStringUntil(char(0));
 		f.close();
 		if(json.length()>2) {
-			DynamicJsonBuffer jsonBuf;
-			JsonArray& jsCommands = jsonBuf.parseArray(json);
+			DynamicJsonDocument doc;
+			deserializeJson(doc, json);
+			JsonArray jsCommands = doc.as<JsonArray>();
 			return processJsonCommands(jsCommands);
 		} else {
 			Serial.printf_P(PSTR("Macro %s too short\r\n"), macroName.c_str());

@@ -14,9 +14,13 @@
 deviceData devices[MAX_DEVICES];
 char buttonNames[MAX_BUTTONNAMES][MAX_BUTTONNAME_LENGTH];
 char codes[MAX_CODE_LENGTH];
+char* pCode;
 int number_devices;
 int number_buttonNames;
-char* pCode;
+
+//data for decoding read data
+
+//return message 
 char retMsg[64];
 
 int bitMessages_addPulses(uint16* msg, char* pulseString, int factor) {
@@ -103,6 +107,7 @@ int bitMessages_getButton(char* buttonString) {
 
 // return device data functions
 int bitMessages_getDeviceCount() {return number_devices;}
+char* bitMessages_getDeviceDataDeviceFile(int device) {return devices[device].deviceFile;}
 char* bitMessages_getDeviceDataDeviceName(int device) {return devices[device].deviceName;}
 char* bitMessages_getDeviceDataHeader(int device) {return devices[device].header;}
 char* bitMessages_getDeviceDataTrailer(int device) {return devices[device].trailer;}
@@ -210,17 +215,19 @@ int bitMessages_makeNamedMsg(uint16* msg, char* deviceString, char* buttonString
 int bitMessages_loadDevice(int deviceIx, char* filename){
 	int i;
 	int button;
-	int buttonIx = -1;;
+	int buttonIx = -1;
+	int counter = 0;
 	String line;
 	String temp;
 	char lineC[MAX_FIELD_LENGTH];
 	int sep;
 	
+	strcpy(devices[deviceIx].deviceFile, filename);
 	for(i=0;i<number_buttonNames;i++)
 		devices[deviceIx].buttonIxs[i] = NULL_BUTTON;
 	File f = SPIFFS.open(String(filename), "r");
 	i=0;
-	while(f.available()) {
+	while(f.available() && (counter < 200)) {
 		line =f.readStringUntil('\n');
 		line.replace("\r","");
 		if(line == "NULL") line = "";
@@ -232,7 +239,7 @@ int bitMessages_loadDevice(int deviceIx, char* filename){
 					temp.trim();
 					strcpy(lineC, temp.c_str());
 					button = bitMessages_getButton(lineC);
-					if(button >= 0) {
+ 					if(button >= 0) {
 						temp = line.substring(sep+1);
 						temp.trim();
 						strcpy(pCode, temp.c_str());
@@ -260,6 +267,7 @@ int bitMessages_loadDevice(int deviceIx, char* filename){
 				i++;
 			}
 		}
+		counter++;
 	}
 	f.close();
 	return buttonIx;
@@ -271,32 +279,86 @@ char* bitMessages_init(){
 	String line;
 	int temp_codes;
 	int total_codes = 0;
+	int counter = 0;
 	char temp[MAX_FIELD_LENGTH];
 	pCode = codes;
 	number_devices = 0;
 	number_buttonNames = 0;
 	//load buttonnames
 	File f = SPIFFS.open(BUTTON_FILE, "r");
-	while(f.available()) {
+	while(f.available() && counter < 200) {
 		line =f.readStringUntil('\n');
+		line.trim();
 		if(line.length() > 0 && line.charAt(0) != '#') {
 			strcpy(buttonNames[number_buttonNames], line.c_str());
 			number_buttonNames++;
 		}
+		counter++;
 	}
 	f.close();
 	//iterate over files starting dev_
 	Dir dir = SPIFFS.openDir("/");
-	while (dir.next()  && (number_devices < (MAX_DEVICES - 1))) {
+	counter = 0;
+	while (dir.next()  && (number_devices < (MAX_DEVICES - 1)) && counter < 300) {
 		line = String(dir.fileName());
 		if(line.indexOf("/dev_") == 0) {
 			strcpy(temp, line.c_str());
 			temp_codes = bitMessages_loadDevice(number_devices, temp);
 			total_codes += temp_codes;
-			if(temp_codes)
+			if(temp_codes>0)
 				number_devices++;
 		}
+		counter++;
 	}
 	sprintf(retMsg, "Buttons:%d Devices:%d Codes: %d Length:%d",number_buttonNames,number_devices,total_codes,pCode - codes);
 	return retMsg;
+}
+
+//Save data from device structure into SPIFFS file
+int bitMessages_saveDeviceData(int device) {
+	int i;
+	char* code;
+	File f = SPIFFS.open(String(devices[device].deviceFile), "w");
+	f.print(F("#deviceName,header,trailer,pulses0,pulses1,frequency,special,repeatdelay,bitCount,minRepeat,toggle,necAddress,spare1"));
+	f.println(devices[device].deviceName);
+	f.println(devices[device].header);
+	f.println(devices[device].trailer);
+	f.println(devices[device].pulses0);
+	f.println(devices[device].pulses1);
+	f.println(devices[device].frequency);
+	f.println(devices[device].special);
+	f.println(devices[device].repeatDelay);
+	f.println(devices[device].bitCount);
+	f.println(devices[device].minRepeat);
+	f.println(devices[device].toggle);
+	f.println(devices[device].necAddress);
+	f.println(devices[device].spare1);
+	f.println("#BUTTONS");
+	for(i = 0; i < MAX_BUTTONNAMES; i++) {
+		code = bitMessages_getDeviceDataButton(device, i);
+		if(code != 0) {
+			f.print(buttonNames[i]);
+			f.print(",");
+			f.println(code);
+		}
+	}
+	f.close();
+}
+
+//Protocol decode routines
+int bitMessages_readTryNEC(uint16* buf){
+	
+}
+
+extern int bitMessages_readTryRC5(uint16* buf){
+	
+}
+
+extern int bitMessages_readTryRC6(uint16* buf){
+	
+}
+
+//Update device definition for button and optionally header from received pulse data
+int bitMessages_readDeviceButton(int device, int button, uint16* buf, int updateHdr) {
+	
 }

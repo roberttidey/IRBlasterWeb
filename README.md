@@ -144,7 +144,7 @@ Existing macros can be removed by using the same procedure but with no commands 
 - WifiManager
 - FS
 - DNSServer
-- ArduinoJson
+- ArduinoJson (must be v6 or greter)
 - ESP8266mDNS
 - ESP8266HTTPUpdateServer
 - OneWire.h
