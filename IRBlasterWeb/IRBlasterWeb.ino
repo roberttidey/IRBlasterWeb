@@ -6,6 +6,7 @@
  Supports temperature reporting
 */
 #define ESP8266
+#define JSON_DOC_SIZE 1500
 
 #define TEMPERATURE 0
 #include <ESP8266WiFi.h>
@@ -528,7 +529,7 @@ void processIr() {
 Process IR commands with json
 */
 void processIrjson() {
-	DynamicJsonDocument doc;
+	DynamicJsonDocument doc(JSON_DOC_SIZE);
 	Serial.println(F("Json command received"));
 	DeserializationError error = deserializeJson(doc, server.arg("plain"));
 	if (error) {
@@ -548,7 +549,7 @@ void processIrjson() {
 }
 
 void saveMacro() {
-	DynamicJsonDocument doc;
+	DynamicJsonDocument doc(JSON_DOC_SIZE);
 	Serial.println(F("save macro received"));
 	DeserializationError error = deserializeJson(doc, server.arg("plain"));
 	if (error) {
@@ -593,7 +594,7 @@ Process Json Commands array
 */
 int processJsonCommands(JsonArray& jsData) {
 	int i;
-	
+	Serial.println("command array size " + String(jsData.size()));
 	for (i = 0; i < jsData.size(); i++) {
 		cmdRepeat = 1;
 		strcpy(cmdDevice,jsData[i]["device"].as<const char*>());
@@ -622,8 +623,11 @@ int processMacroCommand(String macroName) {
 		String json = f.readStringUntil(char(0));
 		f.close();
 		if(json.length()>2) {
-			DynamicJsonDocument doc;
-			deserializeJson(doc, json);
+			DynamicJsonDocument doc(JSON_DOC_SIZE);
+			DeserializationError error = deserializeJson(doc, json);
+			if(error) {
+				Serial.println(error.c_str());
+			}
 			JsonArray jsCommands = doc.as<JsonArray>();
 			return processJsonCommands(jsCommands);
 		} else {
@@ -710,6 +714,7 @@ void checkStatus() {
 		response += "<BR>File:" + dir.fileName() + " - " + dir.fileSize();
 	}
 	response +="<BR>";
+	response += "Free Heap " + String(ESP.getFreeHeap()) +"<BR>";
 	
     server.send(200, "text/html", response);
 }
