@@ -1,0 +1,36 @@
+energenie
+#Header
+
+#Trailer
+H350,L11000
+#Pulses0
+H1110,L350
+#Pulses1
+H350,L1110
+#frequency
+0
+#special
+0
+#repeat gap mSec
+0
+#bitCount
+24
+#minimum repeat
+7
+#toggle
+0
+#necAddress
+
+#spare1
+-1
+#codes
+AllOn,636362
+AllOff,636363
+ON1,636360
+OFF1,636361
+ON2,636368
+OFF2,636369
+ON3,636364
+OFF3,636365
+ON4,63636C
+OFF4,63636D

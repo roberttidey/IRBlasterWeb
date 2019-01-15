@@ -1,6 +1,11 @@
 # IRBlasterWeb
 ## Infra Red remote control blaster using esp8266
 
+### Changes 2019/01/15
+#### temperature code excluded if not required
+#### merged with iLumos repository 
+#### extra definition files added
+
 ### Features
 - Transmits remote control codes freceived from Web.
 - Remote control set up is in SPIFFs files which allows new set ups without changing code
@@ -151,7 +156,7 @@ Existing macros can be removed by using the same procedure but with no commands 
 - DallasTemperature.h
 
 ### Temperature sensing
-If TEMPERATURE is defined to be 1 at the top of the sketch then temperature sensing is activated.
+If TEMPERATURE is defined to be 1 at the top of the sketch then temperature sensing support is included.
 A config file espConfig is downloaded from a web host which contains some config data 
 as described in the example file. The address of the EIOT server and its password need to be set up in the sketch.
 

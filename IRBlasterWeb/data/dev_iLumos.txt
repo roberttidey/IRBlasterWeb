@@ -1,0 +1,47 @@
+iLumos
+#Header
+H425,L425
+#Trailer
+
+#Pulses0
+H280,L215
+#Pulses1
+H160,L340
+#frequency
+0
+#special
+0
+#repeat gap mSec
+0
+#bitCount
+24
+#minimum repeat
+44
+#toggle
+0
+#necAddress
+
+#spare1
+-1
+#codes
+#first 4 digits have been replaced with dummy id
+A,1234AE
+B,12349D
+C,12348C
+D,12347B
+AllOff,56787B
+1,5678BF
+2,567815
+3,5678B0
+4,567848
+5,567826
+6,5678C1
+Dim1,56788C
+Dim2,567804
+Dim3,567837
+Plus1,56789D
+Plus2,567859
+Plus3,5678E3
+Minus1,5678AE
+Minus2,56786A
+Minus3,5678D2
