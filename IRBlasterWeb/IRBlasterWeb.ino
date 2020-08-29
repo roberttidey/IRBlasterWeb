@@ -616,12 +616,12 @@ void processIrjson() {
 		return;
 	}
 	JsonObject jsData = doc.as<JsonObject>();
-	if (jsData.get("auth").as<String>() != AP_AUTHID) {
+	if (jsData.getMember("auth").as<String>() != AP_AUTHID) {
 		Serial.println(F("Unauthorized"));
 		server.send(401, "text/html", "Unauthorized");
 	} else {
 		server.send(200, "text/html", "Valid JSON command being processed");
-		JsonArray jsCommands = jsData.get("commands").as<JsonArray>();
+		JsonArray jsCommands = jsData.getMember("commands").as<JsonArray>();
 		processJsonCommands(jsCommands);
 	}
 }
@@ -640,13 +640,13 @@ void saveMacro() {
 	String macroname;
 	String json;
 	int i;
-	if (jsData.get("auth").as<String>() != AP_AUTHID) {
+	if (jsData.getMember("auth").as<String>() != AP_AUTHID) {
 		Serial.println(F("Unauthorized"));
 		server.send(401, "text/html", "Unauthorized");
 	} else {
-		macroname = jsData.get("macro").as<String>();
+		macroname = jsData.getMember("macro").as<String>();
 		if(macroname.length() > 0) {
-			json = jsData.get("commands").as<String>();
+			json = jsData.getMember("commands").as<String>();
 			if(json.length() > 0) {
 				File f = SPIFFS.open("/" + macroname + ".txt", "w");
 				f.print(json);
