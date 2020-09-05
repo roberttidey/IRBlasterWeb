@@ -138,6 +138,7 @@ Existing macros can be removed by using the same procedure but with no commands 
 - /reload (reloads buttonnames and device files. Use after changing any of these)
 
 ### Libraries
+- BaseSupport library https://github.com/roberttidey/BaseSupport
 - BitMessages Routines to look up and create pulse sequences for a commands
 - BitTx Bit bang routines to execute a pulse sequence
 	- Interrupt driven and supports accurate modulation
