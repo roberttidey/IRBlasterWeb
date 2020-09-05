@@ -104,6 +104,7 @@ Existing macros can be removed by using the same procedure but with no commands 
 	- update password  for updating firmware
 	- EIOT password if using temperature support
 	- TEMPERATURE if temp sensing needed
+	- Uncomment FASTCONNECT in BaseConfig.h as required
 - On start up connect to WM_NAME network and browse to 192.168.4.1 to set up wifi
 	
 ### Remote controls definitions
