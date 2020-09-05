@@ -97,19 +97,14 @@ Example
 Existing macros can be removed by using the same procedure but with no commands content.
 
 ### Config
-- Edit IRBlasterWeb.ino
-	- Manual Wifi set up (Comment out WM_NAME)
-		- AP_SSID Local network ssid
-		- AP_PASSWORD 
-		- AP_IP If static IP to be used
-	- Wifi Manager set up
-		- WM_NAME (ssid of wifi manager network)
-		- WM_PASSWORD (password to connect)
-		- On start up connect to WM_NAME network and browse to 192.168.4.1 to set up wifi
+- Edit BaseConfig.h
+	- WifiManager password
 	- AP_PORT to access ir blaster web service
 	- AP_AUTHID Pincode or password to authorise web commands
-	- update_username user for updating firmware
-	- update_password
+	- update password  for updating firmware
+	- EIOT password if using temperature support
+	- TEMPERATURE if temp sensing needed
+- On start up connect to WM_NAME network and browse to 192.168.4.1 to set up wifi
 	
 ### Remote controls definitions
 - buttonnames.txt is a file held in SPIFFs which just holds a list of global button names across all devices
