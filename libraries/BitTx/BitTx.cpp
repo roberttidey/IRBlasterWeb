@@ -22,8 +22,8 @@
 #define BANG_ON  ESP8266_REG(bangAddrOn) = bangDataOn;
 #define BANG_OFF ESP8266_REG(bangAddrOff) = bangDataOff;
 
-//Base i2s word clock = 160,000,000 / 34
-#define BASE_I2S_WCLOCK 4705882.35
+//Base i2s word clock = 160,000,000 / 32
+#define BASE_I2S_WCLOCK 5000000
 
 static uint32_t bangAddrOn, bangAddrOff, bangDataOn, bangDataOff;
 
@@ -134,7 +134,7 @@ void bitTx_init(int pin, float rate, int esTimer) {
 		}
 		//Serial.printf("div1 %d div2 %d\r\n",div1,div2);
 		I2SC &= 0xf0000cff;
-		I2SC |= div1 << I2SBD | div2 << I2SCD | 1 << I2SBM;
+		I2SC |= div1 << I2SBD | div2 << I2SCD;
 		//Set up address and start i2s clock to get word clock
 		if(txPin == 2) {
 			I2SC |= 0x100; //0x2<<8 start rx clock
