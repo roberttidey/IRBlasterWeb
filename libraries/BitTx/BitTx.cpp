@@ -15,7 +15,7 @@
 #include "BitTx.h"
 #include <arduino.h>
 #include <i2s_reg.h>
-#include <i2s.h>
+#include <I2S.h>
 #include <string.h>
 
 //Define macros for local use of On/Off 
@@ -76,7 +76,7 @@ void ICACHE_RAM_ATTR bitTxIsr() {
 			timer0_write(espNext);
 		} else {
 			timer1_write(nextPeriod);
-			timer1_enable(TIM_DIV265, TIM_EDGE, TIM_SINGLE);
+			timer1_enable(TIM_DIV256, TIM_EDGE, TIM_SINGLE);
 		}
 	}
 }

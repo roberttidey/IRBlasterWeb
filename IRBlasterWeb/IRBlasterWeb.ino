@@ -48,6 +48,7 @@ int alexaState = 1; //0 = alexaOn
 int alexaPin = 12; // Set to -1 to disable alexa activate processing
 int alexaDetect = 0; //Set to 1 to activate Alexa detect handling
 
+WiFiClient client;
 HTTPClient cClient;
 
 float diff = 0.1;
@@ -113,12 +114,12 @@ void sendMsg(int count, int repeat);
 		while(retries > 0) {
 			Serial.print("Try to GET config data from Server for: ");
 			Serial.println(macAddr);
+			cClient.begin(client, url);
 			#ifdef CONFIG_AUTH
 				cClient.setAuthorization(EIOT_USERNAME, EIOT_PASSWORD);
 			#else
 				cClient.setAuthorization("");		
 			#endif
-			cClient.begin(url);
 			httpCode = cClient.GET();
 			if (httpCode > 0) {
 				if (httpCode == HTTP_CODE_OK) {
@@ -218,8 +219,8 @@ void sendMsg(int count, int repeat);
 		Serial.print("POST data to URL: ");
 		Serial.println(url);
 		while(retries > 0) {
+			cClient.begin(client, url);
 			cClient.setAuthorization(EIOT_USERNAME, EIOT_PASSWORD);
-			cClient.begin(url);
 			httpCode = cClient.GET();
 			if (httpCode > 0) {
 				if (httpCode == HTTP_CODE_OK) {
