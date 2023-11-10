@@ -177,15 +177,15 @@ The codes are then appended to a file called device.ircodes. If check is y then 
 Note that the program assumes the GPIO is low when IR is off. I use a simple 1 transistor buffer between the sensor to convert to 3.3V 
 which inverts the signal from the sensor (active low). If no inversion is used then modify the defintions at line 26-27
   
-### Triggering from Alexa / IFTTT
+### Triggering from Alexa
+- This area has changed due to IFTTT being removed from Alexa integration and changes in Alexa skills development.
 - Set up Router to port forward external requests to IRBlaster device. Use a dns service if possible to give router external IP a name
-- Register with IFTTT and set up Alexa service using your Amazon login
-- Create new Applet with Alexa as IF. Select trigger with phrase. Enter phrase to be the trigger, e.g tv on.
-- Use Maker WebHooks as the THAT action.
-- Enter a URL into Webhooks to invoke the IRBlaster action (typically use a macro) e.g `
-http://yourExtIP:port?plain={"auth":"1234","commands":[{"device":"macro","parameter":"TVOn","wait":"1000"}]}`
-Note that this needs to be in the IFTTT URL, putting the POST in the body in IFTTT does not seem to work
-- Create and save the macro with same name (TVOn) in the IRBlaster to support the request
+- Create a login for developer.amazon.com if you don't have one. Use same amazon login as your main Amazon login / alexa devices
+- Create a new custom skill in the ALexa skills IDE and upload the skill definition from the Alexa folder included with this repository.
+- Build the skill model in the IDE.
+- On the code tab edit the lamda_function.py file. Edit the commands dictionary to add or remove button names and the associated json to send to the ir blaster
+- edit the url in the transmitIntent to have the server address and port for Alexa to send the commands to `
+- save and deploy the skill. It should be available under your skills/dev in the Alexa App. Make sure it is enabled.
   
 ### Alexa activate detector
 - An input pin can be used to interface to an Alexa activate detector.
