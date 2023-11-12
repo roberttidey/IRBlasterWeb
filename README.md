@@ -181,13 +181,14 @@ which inverts the signal from the sensor (active low). If no inversion is used t
 - This area has changed due to IFTTT being removed from Alexa integration and changes in Alexa skills development.
 - Set up Router to port forward external requests to IRBlaster device. Use a dns service if possible to give router external IP a name
 - Create a login for developer.amazon.com if you don't have one. Use same amazon login as your main Amazon login / alexa devices
-- Create a new custom skill in the ALexa skills IDE and upload the skill definition from the Alexa folder included with this repository.
+- Create a new custom skill in the Alexa skills IDE and upload the skill definition from the Alexa folder included with this repository.
 - Build the skill model in the IDE.
-- On the code tab edit the lamda_function.py file. Edit the commands dictionary to add or remove button names and the associated json to send to the ir blaster
-- edit the url in the transmitIntent to have the server address and port for Alexa to send the commands to `
+- On the code tab edit the lambda_function.py file. Edit the commands dictionary to add or remove button names and the associated json to send to the ir blaster
+- edit the url in the transmitIntent to have the server address and port for Alexa to send the commands to. The %c is replaced by the selected command when invoked. `
 - save and deploy the skill. It should be available under your skills/dev in the Alexa App. Make sure it is enabled.
+- You can now say something like "Alexa Ask remote control to push power" to send the power command.
   
-### Alexa activate detector
+### Alexa activate detector (Optional)
 - An input pin can be used to interface to an Alexa activate detector.
 - This uses a light dependent resistor to detect when the LED rings on the Dot light up.
 - This can be used to send out ir commands locally to mute the sound and make the recognition of the Alexa command more reliable.
