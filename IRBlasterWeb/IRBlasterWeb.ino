@@ -577,6 +577,7 @@ void extraHandlers() {
 
 void setupEnd() {
 	Serial.println("Set up IR sender");
+	DS18B20.begin();
 	bitTx_init(irPin, irFrequency, IR_TIMER);
 	if(alexaPin >=0) {
 		pinMode(alexaPin, INPUT_PULLUP);
