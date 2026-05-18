@@ -1,8 +1,13 @@
 # IRBlasterWeb
 ## Infra Red remote control blaster using esp8266
 
+### Changes 2026/05/18
+temperature reporting is via mqtt (e.g. home assistant). easyIOT no longer supported
+A zip of old code may be found in my zipReps repository
+
 ### Changes 2019/01/15
 #### temperature code excluded if not required
+
 #### merged with iLumos repository 
 #### extra definition files added
 

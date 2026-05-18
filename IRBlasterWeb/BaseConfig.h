@@ -28,12 +28,15 @@ const char* update_password = "password";
 
 // comment out this define unless using modified WifiManager with fast connect support
 //#define FASTCONNECT true
+#define mqtt_server "mqtt-ip"
 
-#define AP_PORT 7070
+#define mqtt_user "user"
+#define mqtt_password "password"
+
+#define AP_PORT 7222
 #define AP_AUTHID "1234"
-#define EIOT_PASSWORD    "password"
 
 //set TEMPERATURE to 1 to include support for DS18B20 temperature sensing
-#define TEMPERATURE 0
+#define TEMPERATURE 1
 
 #include "BaseSupport.h"

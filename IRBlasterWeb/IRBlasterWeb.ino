@@ -10,6 +10,7 @@
 #define JSON_DOC_SIZE 1500
 
 #include <ESP8266HTTPClient.h>
+#include <PubSubClient.h>						
 #include "BitMessages.h"
 #include "BitTx.h"
 #include <ArduinoJson.h>
@@ -51,6 +52,13 @@ int alexaDetect = 0; //Set to 1 to activate Alexa detect handling
 WiFiClient client;
 HTTPClient cClient;
 
+//Home assistant access
+#define MQTT_RETRIES 3
+String temperature_topic = "home/sensor/T";
+WiFiClient mClient;
+PubSubClient mqttClient(mClient);
+
+
 float diff = 0.1;
 
 void processIr();
@@ -68,29 +76,12 @@ void sendMsg(int count, int repeat);
 
 //temperature support variales and functions if required
 #if (TEMPERATURE == 1)
-	//Config remote fetch from web page (include port in url if not 80)
-	#define CONFIG_IP_ADDRESS  "http://192.168.0.7/espConfig"
-	#define CONFIG_PORT        80
-	//Comment out for no authorisation else uses same authorisation as EIOT server
-	#define CONFIG_AUTH 1
-	#define CONFIG_PAGE "espConfig"
-	#define CONFIG_RETRIES 10
-
-	// EasyIoT server definitions
-	#define EIOT_USERNAME    "admin"
-	//EIOT report URL (include port in url if not 80)
-	#define EIOT_IP_ADDRESS  "http://192.168.0.7/Api/EasyIoT/Control/Module/Virtual/"
-	#define EIOT_PORT        80
-	//bit mask for server support
-	#define EASY_IOT_MASK 1
-	int serverMode = 0;
 
 	#define ONE_WIRE_BUS 13  // DS18B20 pin
 	OneWire oneWire(ONE_WIRE_BUS);
 	DallasTemperature DS18B20(&oneWire);
 
 	//general variables
-	String eiotNode = "-1";
 	float oldTemp, newTemp;
 	unsigned long tempCheckTime;
 	unsigned long tempReportTime;
@@ -100,97 +91,6 @@ void sendMsg(int count, int repeat);
 	int forceInterval = 300; // send message after this interval even if temp same 
 
 	/*
-	  Get config from server
-	*/
-	void getConfig() {
-		int responseOK = 0;
-		int httpCode;
-		int len;
-		int retries = CONFIG_RETRIES;
-		String url = String(CONFIG_IP_ADDRESS);
-		Serial.println("Config url - " + url);
-		String line = "";
-
-		while(retries > 0) {
-			Serial.print("Try to GET config data from Server for: ");
-			Serial.println(macAddr);
-			cClient.begin(client, url);
-			#ifdef CONFIG_AUTH
-				cClient.setAuthorization(EIOT_USERNAME, EIOT_PASSWORD);
-			#else
-				cClient.setAuthorization("");		
-			#endif
-			httpCode = cClient.GET();
-			if (httpCode > 0) {
-				if (httpCode == HTTP_CODE_OK) {
-					responseOK = 1;
-					int config = 100;
-					len = cClient.getSize();
-					if (len < 0) len = -10000;
-					Serial.println("Response Size:" + String(len));
-					WiFiClient * stream = cClient.getStreamPtr();
-					while (cClient.connected() && (len > 0 || len <= -10000)) {
-						if(stream->available()) {
-							line = stream->readStringUntil('\n');
-							len -= (line.length() +1 );
-							//Don't bother processing when config complete
-							if (config >= 0) {
-								line.replace("\r","");
-								Serial.println(line);
-								//start reading config when mac address found
-								if (line == macAddr) {
-									config = 0;
-								} else {
-									if(line.charAt(0) != '#') {
-										switch(config) {
-											case 0: host = line;break;
-											case 1: serverMode = line.toInt();break;
-											case 2: eiotNode = line;break;
-											case 3: break; //spare
-											case 4: minMsgInterval = line.toInt();break;
-											case 5:
-												forceInterval = line.toInt();
-												Serial.println("Config fetched from server OK");
-												config = -100;
-										}
-										config++;
-									}
-								}
-							}
-						}
-					}
-				}
-			} else {
-				Serial.printf("[HTTP] POST... failed, error: %s\n", cClient.errorToString(httpCode).c_str());
-			}
-			cClient.end();
-			if(responseOK)
-				break;
-			Serial.println("Retrying get config");
-			retries--;
-		}
-		Serial.println();
-		Serial.println("Connection closed");
-		Serial.print("host:");Serial.println(host);
-		Serial.print("serverMode:");Serial.println(serverMode);
-		Serial.print("eiotNode:");Serial.println(eiotNode);
-		Serial.print("minMsgInterval:");Serial.println(minMsgInterval);
-		Serial.print("forceInterval:");Serial.println(forceInterval);
-	}
-
-	/*
-	  reload Config
-	*/
-	void reloadConfig() {
-		if (server.arg("auth") != AP_AUTHID) {
-			Serial.println("Unauthorized");
-			server.send(401, "text/html", "Unauthorized");
-		} else {
-			getConfig();
-			server.send(200, "text/html", "Config reload");
-		}
-	}
-	/*
 	  Check if value changed enough to report
 	*/
 	bool checkBound(float newValue, float prevValue, float maxDiff) {
@@ -199,54 +99,35 @@ void sendMsg(int count, int repeat);
 	}
 
 	/*
-	 Send report to easyIOTReport
-	 if digital = 1, send digital else analog
+	  Establish MQTT connection for publishing to Home assistant
 	*/
-	void easyIOTReport(String node, float value, int digital) {
-		int retries = CONFIG_RETRIES;
-		int responseOK = 0;
-		int httpCode;
-		String url = String(EIOT_IP_ADDRESS) + node;
-		// generate EasIoT server node URL
-		if(digital == 1) {
-			if(value > 0)
-				url += "/ControlOn";
-			else
-				url += "/ControlOff";
-		} else {
-			url += "/ControlLevel/" + String(value);
-		}
-		Serial.print("POST data to URL: ");
-		Serial.println(url);
-		while(retries > 0) {
-			cClient.begin(client, url);
-			cClient.setAuthorization(EIOT_USERNAME, EIOT_PASSWORD);
-			httpCode = cClient.GET();
-			if (httpCode > 0) {
-				if (httpCode == HTTP_CODE_OK) {
-					String payload = cClient.getString();
-					Serial.println(payload);
-					responseOK = 1;
-				}
+	void mqttConnect() {
+		// Loop until we're reconnected
+		int retries = 0;
+		while (!mqttClient.connected() && (retries < (2 * MQTT_RETRIES))) {
+			Serial.print("Attempting MQTT connection...");
+			// Attempt to connect
+			// If you do not want to use a username and password, change next line to
+			// if (mqttClient.connect("ESP8266mqttClient")) {
+			if (mqttClient.connect("ESP8266Client", mqtt_user, mqtt_password)) {
+				Serial.println("connected");
 			} else {
-				Serial.printf("[HTTP] POST... failed, error: %s\n", cClient.errorToString(httpCode).c_str());
+				Serial.print("failed, rc=");
+				Serial.println(mqttClient.state());
+				delay(300);
+				retries++;
+				if(retries > MQTT_RETRIES) {
+					wifiConnect(1);
+				}
 			}
-			cClient.end();
-			if(responseOK)
-				break;
-			else
-				Serial.println("Retrying EIOT report");
-			retries--;
 		}
-		Serial.println();
-		Serial.println("Connection closed");
 	}
 
 	/*
 	 Check temperature and report if necessary
 	*/
 	void checkTemp() {
-		if((serverMode & EASY_IOT_MASK) && (elapsedTime - tempCheckTime) * timeInterval / 1000 > minMsgInterval) {
+		if((elapsedTime - tempCheckTime) * timeInterval / 1000 > minMsgInterval) {
 			DS18B20.requestTemperatures(); 
 			newTemp = DS18B20.getTempCByIndex(0);
 			if(newTemp != 85.0 && newTemp != (-127.0)) {
@@ -256,10 +137,22 @@ void sendMsg(int count, int repeat);
 					oldTemp = newTemp;
 					Serial.print("New temperature:");
 					Serial.println(String(newTemp).c_str());
-					easyIOTReport(eiotNode, newTemp, 0);
+						
+					if (!mqttClient.connected()) {
+						mqttConnect();
+					}
+					if (mqttClient.connected()) {
+						mqttClient.loop();
+						mqttClient.publish((temperature_topic+macAddr).c_str(), String(newTemp).c_str(), true);
+						Serial.println("Published topic:" + temperature_topic+macAddr.c_str());
+					} else {
+						Serial.println("Not published. MQTT not connected");
+					}
 				}
+
 			} else {
-				Serial.println("Invalid temp reading");
+				Serial.println("Invalid temp reading" + String(newTemp));
+				delaymSec(1000);
 			}
 		}
 	}
@@ -281,7 +174,8 @@ void processIr() {
 		cmdBitCount = server.arg("bits").toInt();
 		server.send(200, "text/html", "Valid args object being processed");
 		if(processIrCommand() != 0) {
-			addRecentCmd("failed");
+			char failed[] = "failed";
+			addRecentCmd(failed);
 		}
 	}
 }
@@ -299,12 +193,12 @@ void processIrjson() {
 		return;
 	}
 	JsonObject jsData = doc.as<JsonObject>();
-	if (jsData.getMember("auth").as<String>() != AP_AUTHID) {
+	if (jsData["auth"].as<String>() != AP_AUTHID) {
 		Serial.println(F("Unauthorized"));
 		server.send(401, "text/html", "Unauthorized");
 	} else {
 		server.send(200, "text/html", "Valid JSON command being processed");
-		JsonArray jsCommands = jsData.getMember("commands").as<JsonArray>();
+		JsonArray jsCommands = jsData["commands"].as<JsonArray>();
 		processJsonCommands(jsCommands);
 	}
 }
@@ -323,13 +217,13 @@ void saveMacro() {
 	String macroname;
 	String json;
 	int i;
-	if (jsData.getMember("auth").as<String>() != AP_AUTHID) {
+	if (jsData["auth"].as<String>() != AP_AUTHID) {
 		Serial.println(F("Unauthorized"));
 		server.send(401, "text/html", "Unauthorized");
 	} else {
-		macroname = jsData.getMember("macro").as<String>();
+		macroname = jsData["macro"].as<String>();
 		if(macroname.length() > 0) {
-			json = jsData.getMember("commands").as<String>();
+			json = jsData["commands"].as<String>();
 			if(json.length() > 0) {
 				File f = SPIFFS.open("/" + macroname + ".txt", "w");
 				f.print(json);
@@ -562,11 +456,6 @@ void setupStart() {
 }
 
 void extraHandlers() {
-	#if (TEMPERATURE ==1)
-		//config only needed if TEMPERATURE used
-		getConfig();
-		server.on("/reloadConfig", reloadConfig);
-	#endif
 	server.on("/irjson" ,processIrjson);
 	server.on("/ir", processIr);
 	server.on("/macro", saveMacro);
@@ -578,6 +467,7 @@ void extraHandlers() {
 void setupEnd() {
 	Serial.println("Set up IR sender");
 	DS18B20.begin();
+	mqttClient.setServer(mqtt_server, 1883);																 
 	bitTx_init(irPin, irFrequency, IR_TIMER);
 	if(alexaPin >=0) {
 		pinMode(alexaPin, INPUT_PULLUP);
